@@ -45,7 +45,7 @@ const ReportTshirt = () => {
         { color: 'lightyellow', text: 'Preparation Phase' },
         { color: 'white', text: 'Realization / Object Development Phase' },
         { color: 'green', text: 'Go Live Phase'         },
-        { color: 'lightgreen', text: 'Hyercare Phase'         }
+        { color: 'lightgreen', text: 'Hypercare Phase'         }
         // Add more colors and text here
       ];
 
@@ -174,35 +174,41 @@ const ReportTshirt = () => {
  
     const handleInputChange = (e, record, dataIndex) => {
         const newValue = e.target.value;
-   
-        setDataSource(prevDataSource => {
-            const updatedDataSource = prevDataSource.map(item => {
-                if (item.key === record.key) {
-                    const updatedItem = { ...item, [dataIndex]: newValue };
-   
-                    let totalDays = 0;
-                    for (let i = 1; i <= colCnt; i++) {
-                        const weekValue = parseInt(updatedItem[`W${i}`], 10) || 0;
-                        totalDays += weekValue;
+        
+        const value = e.target.value;
+        if (/^\d*$/.test(value)) 
+        { // Allow only integers
+            
+            setDataSource(prevDataSource => {
+                const updatedDataSource = prevDataSource.map(item => {
+                    if (item.key === record.key) {
+                        const updatedItem = { ...item, [dataIndex]: newValue };
+    
+                        let totalDays = 0;
+                        for (let i = 1; i <= colCnt; i++) {
+                            const weekValue = parseInt(updatedItem[`W${i}`], 10) || 0;
+                            totalDays += weekValue;
+                        }
+    
+                        updatedItem.Total_Days = totalDays;
+                        updatedItem.Total_Hours = totalDays * 8;
+                        return updatedItem;
                     }
-   
-                    updatedItem.Total_Days = totalDays;
-                    updatedItem.Total_Hours = totalDays * 8;
-                    return updatedItem;
-                }
-                return item;
+                    return item;
+                });
+                
+    
+                // Calculate totals for all rows *after* updating the data source
+                const allTotalDays = updatedDataSource.reduce((sum, item) => sum + item.Total_Days, 0);
+                const allTotalHours = updatedDataSource.reduce((sum, item) => sum + item.Total_Hours, 0);
+            
+                // You'll likely need to store these totals in state as well
+                setAllTotalDays(allTotalDays); // Assuming you have state for allTotalDays
+                setAllTotalHours(allTotalHours); // And state for allTotalHours
+    
+                return updatedDataSource; // Return the updated data source
             });
-   
-            // Calculate totals for all rows *after* updating the data source
-            const allTotalDays = updatedDataSource.reduce((sum, item) => sum + item.Total_Days, 0);
-            const allTotalHours = updatedDataSource.reduce((sum, item) => sum + item.Total_Hours, 0);
-           
-            // You'll likely need to store these totals in state as well
-            setAllTotalDays(allTotalDays); // Assuming you have state for allTotalDays
-            setAllTotalHours(allTotalHours); // And state for allTotalHours
-   
-            return updatedDataSource; // Return the updated data source
-        });
+        }
     };
  
     const { styles } = useStyle();
