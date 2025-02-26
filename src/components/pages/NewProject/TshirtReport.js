@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Select, Table, Button, Input, Alert, message } from 'antd';
+import { Select, Table, Button, Input, message } from 'antd';
 import { createStyles } from 'antd-style';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Callbacks } from 'jquery';
 
 
 const ColorSwatch = ({ color, text }) => {
@@ -45,7 +44,7 @@ const ReportTshirt = () => {
         { color: 'lightyellow', text: 'Preparation Phase' },
         { color: 'white', text: 'Realization / Object Development Phase' },
         { color: 'green', text: 'Go Live Phase'         },
-        { color: 'lightgreen', text: 'Hypercare Phase'         }
+        { color: 'lightgreen', text: 'Hypercare Phase' }
         // Add more colors and text here
       ];
 
@@ -634,6 +633,7 @@ const ReportTshirt = () => {
                         borderRadius: '4px',
                         minWidth: '100px', // Or adjust as needed
                     }}
+                    // disabled = 
                 />
 
                 <label style={{ marginRight: '10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
@@ -708,13 +708,13 @@ const ReportTshirt = () => {
                 </>
             </div> */}
 
-            {dataSource.length!=0 &&(<div 
+            {dataSource.length!==0 &&(<div 
             style={{ display: 'flex',
                 justifyContent: 'space-between', 
                 //  alignItems: 'center'
                 }}
                 >
-                <div style={{marginLeft: '50%', marginRight: '447px'}}> {/* Button container */}
+                <div style={{marginLeft: '50%', marginRight: '369px'}}> {/* Button container */}
                         <Button onClick={handelSaveReport} style={{ width: '70px', height: '50px', background: 'blue', color: 'white' }}>
                             Save
                         </Button>
@@ -789,7 +789,7 @@ const ReportTshirt = () => {
     
 
         </div>
-        {dataSource.length!=0 &&(<div style={{ display: 'flex' }}> {/* Column for vertical stacking */}
+        {dataSource.length!==0 &&(<div style={{ display: 'flex' }}> {/* Column for vertical stacking */}
                 {colorData.map((item, index) => (
                 <ColorSwatch key={index} color={item.color} text={item.text} />
                 ))}

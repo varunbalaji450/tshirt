@@ -261,15 +261,16 @@ const Tshirt = () => {
           })
         }catch(err){
             console.log(err);
-            
         }
         message.success('Saved successfully!', 1);
 
         setTimeout(() => {
-            navigate(`/newProject/home/`);
+            navigate(`/`);
         }, 1500);
         
-      };
+    };
+
+
     const handleExcel = async () => {
         try {
             // const saveResponse = await axios.post(`http://127.0.0.1:8000/temp_save/`, 
@@ -324,7 +325,10 @@ const Tshirt = () => {
         console.log(scope);
         
     };
+    
 
+
+    
     const handleSelectChange = async (index, field, value) => {
         setLoading(true);
         const updatedRow = { ...masterData[index], [field]: value };
@@ -611,7 +615,7 @@ const Tshirt = () => {
 
 
     const homeClick=()=>{
-        navigate(`/newProject/home/`);
+        navigate(`/`);
     }
     useEffect(() => {
         if (tableRef.current) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Table, Form, Input,Space  } from 'antd';
+import { Button, Table, Form, Input,Space ,message } from 'antd';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -47,7 +47,7 @@ const TshirtHome = () => {
     const handleViewReport = (txt, record)=>{
         console.log('button Clicked');
         console.log(record); 
-        navigate(`/newProject/tshirtReport/${record.project_name}/${record.total_efforts}`);
+        navigate(`/tshirtReport/${record.project_name}/${record.total_efforts}`);
     }
 
     useEffect(() => {
@@ -67,7 +67,7 @@ const TshirtHome = () => {
             key: 'project_name',
             align: 'center',
             render: (text, record) => (
-                <Link to={`/newProject/tshirt/${record.project_name}`}  style={{width:'10px'}}> {/* Corrected path */}
+                <Link to={`/tshirt/${record.project_name}`}  style={{width:'10px'}}> {/* Corrected path */}
                     {text} {/* Display the text (project name) */}
                 </Link>
             ),
@@ -110,38 +110,39 @@ const TshirtHome = () => {
 
          // Frontend Validations
         if (!projectName.trim()) {  // Check for empty or whitespace-only string
-            alert("Project name cannot be empty or contain only whitespace.");
+            // alert("");
+            message.warning('Project name cannot be empty or contain only whitespace', 1.3);
             return; // Stop further execution
         }
         if (projectName.startsWith("_") || projectName.endsWith("_")) {
-            alert("Underscore cannot be at the beginning or end of the project name.");
+            message.warning('Underscore cannot be at the beginning or end of the project name', 1.3);
             return;
         }
 
         const specialChars = /[!@#$%^&*()+\-=[\]{};':",\\|,.<>\/?]+/; // Regex for special characters
         if (specialChars.test(projectName)) {
-            alert("Project name cannot contain special characters.");
+            message.warning('Project name cannot contain special characters', 1.3);
             return;
         }
-
+        
         if (/\s/.test(projectName)) { // Check for any whitespace character
-            alert("Project name cannot contain spaces.");
+            message.warning('Project name cannot contain spaces', 1.3);
             return;
         }
-
+        
         // Additional validations (e.g., minimum/maximum length)
         if (projectName.length < 3) {
-            alert("Project name must be at least 3 characters long.");
+            message.warning('Project name must be at least 3 characters long', 1.3);
             return;
         }
-
+        
         if (projectName.length > 50) { // Example max length
-            alert("Project name cannot exceed 50 characters.");
+            message.warning('Project name cannot exceed 50 characters', 1.3);
             return;
         }
-
+        
         if (/^\d/.test(projectName)) { // Check if the string starts with a digit
-            alert("Project name cannot start with a number.");
+            message.warning('Project name cannot start with a number', 1.3);
             return;
         }
 
@@ -149,7 +150,6 @@ const TshirtHome = () => {
         let temp = {
             "project_name" : projectName
         }
-        
         try{
             const saveResponse = await axios.post(`http://127.0.0.1:8000/project_create/`,temp);
             console.log('Project created successfully');
@@ -157,7 +157,7 @@ const TshirtHome = () => {
             const getProject = await axios.get(`http://127.0.0.1:8000/project_get/`);
             console.log('Projects Refreshed successfully');
             setAllData(getProject?.data);
-            navigate(`/newProject/tshirt/${projectName}`);
+            navigate(`/tshirt/${projectName}`);
             setDisplayDiv(false);
         }
         catch(err){
