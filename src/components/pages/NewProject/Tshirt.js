@@ -64,7 +64,7 @@ const Tshirt = () => {
             align: 'center',
             render: (text, record, index) => (
                 <Input
-                style={{width:"150px"}}
+                style={{width:"auto"}}
                     defaultValue={text || ''}
                     onChange={(e) => handleInputChange(index, 'object', e.target.value)}
                 />
@@ -353,7 +353,7 @@ const Tshirt = () => {
                 setMasterData(updatedMasterData);
                 console.log(transComplexcity," ",loadComplexcity, " ", sourceComplexcity)
                 console.log('scope', scope);
-                if(scope === "InScope"){
+                if(scope.toLowerCase() === "inscope"){
                     console.log('true');
                     
                 }else{
@@ -363,7 +363,7 @@ const Tshirt = () => {
                 console.log(' update row');
                 setLoading(false);
                 console.log(updatedRow); 
-                if(scope === "InScope"){
+                if(scope.toLowerCase() === "inscope"){
                     const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
                     // const newData = [...masterData];
                     // newData[index] = response.data[0];
@@ -629,7 +629,19 @@ const Tshirt = () => {
     
     return (
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
-            <div  style={{ marginBottom: '20px', textAlign: 'center' }}><h1>Data Migration - Effort and Estimation Report</h1></div>
+            <div style={{ marginBottom: '20px', display: 'inline',textAlign:'center'}}>
+                <div style={{ position: 'absolute', left: '25px',alignContent:'center', marginTop:'6px'  }}>                
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz6s3WZNZAaKEXsBVRXuMDagabISvp0gqDRw&s"
+                    style={{width: '100px', height: '50px', marginRight:'10px',cursor: 'pointer' }}
+                    
+                    onClick={()=>{
+                        navigate(`/`);
+                    }}
+                    ></img>
+                </div>
+
+                <h1>Data Migration - Effort and Estimation Report</h1>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' , justifyContent : 'space-between'}}> {/* Flexbox for alignment */}
       <Select
         style={{ width: 200, marginRight: '10px', marginBottom: '10px' }} // Add margin for spacing

@@ -1,0 +1,13 @@
+ <Link to={`/tshirt/${record.project_name}`}  style={{width:'10px'}}> {/* Corrected path */}
+                    {text} 
+
+/home/home should be changed
+
+
+exort to excel -> place icon
+signout and user profile button in every page _> reference aditya page
+
+inscope when in inscope -> outScope should change -> outScope
+
+logout and login validations.
+

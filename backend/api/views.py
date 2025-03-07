@@ -10,8 +10,10 @@ import io
 from django.http import HttpResponse
 from django.db import connection
 from django.db import connections, transaction
-import math
+
 from django.http import JsonResponse
+import math
+import json
 
 @api_view(['GET'])
 def home(request):
@@ -248,7 +250,80 @@ def sqllite3_to_excel(request):
     except Exception as e:
         print(f"An error occurred: {e}") # Log the error for debugging
         return HttpResponse(f"An error occurred: {e}", status=500)  # Return error response
+    
 
+
+
+@api_view(['GET'])
+def home_to_excel(request,pname):
+    queryset = project_efforts.objects.filter(project_name=pname)
+
+    data = list(queryset.values())
+
+    if not data:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+   
+
+    df = pd.DataFrame.from_records(data)
+
+    # print(df)
+
+    total_efforts = 0
+
+    if 'total' in df.columns:  # Check if the 'total' column exists (important!)
+            total_efforts = df['total'].sum()
+
+
+    total_row = pd.DataFrame([{'total': total_efforts}])  # Create a DataFrame for the new row
+
+        # # Append the total row to the main DataFrame
+    df = pd.concat([df, total_row], ignore_index=True) 
+
+
+    if 'id' in df.columns:
+        df = df.drop(columns=['id'])
+    if 'project_name' in df.columns:
+        df = df.drop(columns=['project_name']) 
+    if 'project_name_id' in df.columns:
+        df = df.drop(columns=['project_name_id']) 
+
+    column_mapping = {
+        'object': 'object',
+        'module': 'module',
+        'data_object_type': 'data_object_type',
+        'transformation_complexity': 'transformation_complexity',
+        'load_complexity': 'load_complexity',
+        'source_complexity': 'source_complexity',
+        'object_development': 'object_development(In Days)',
+        'iteration_1_data_loading': 'iteration_1_data_loading(In Days)',
+        'iteration_1_defects': 'iteration_1_defects(In Days)',
+        'iteration_2_data_loading': 'iteration_2_data_loading(In Days)',
+        'iteration_2_defects': 'iteration_2_defects(In Days)',
+        'iteration_3_data_loading': 'iteration_3_data_loading(In Days)',
+        'iteration_3_defects': 'iteration_3_defects(In Days)',
+        'production_data_loads': 'production_data_loads(In Days)',
+        'total': 'Total Efforts(In Days)'
+    }
+    df = df.rename(columns=column_mapping)
+
+
+    model_name  = "load_time"
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer: #Using openpyxl engine
+        df.to_excel(writer, index=False, sheet_name="data")  # Add sheet name
+
+    output.seek(0)  # Rewind to the beginning of the file
+
+    # Create the HTTP response with appropriate headers
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{model_name}.xlsx"'
+    response.write(output.getvalue()) #Write the file to response
+
+    # return Response("Hello")
+    return response
 
 
 @api_view(['POST'])  # Changed to POST
@@ -408,7 +483,8 @@ def project_create(request):
         "project_name" : pname,
         "objects_count" : 0,
         "total_efforts" : 0,
-        "table_name" : ''
+        "table_name" : '',
+        "user_name"  : "yash"
     }
     data = projects.objects.filter(project_name=pname)
     if data:
@@ -879,4 +955,70 @@ def report_update(request,pname):
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+
+@api_view(['POST'])
+def user_create(request):
+
+    data = user.objects.filter(user_name=request.data['user_name'])
+    # print("Recieved Data :" ,request.data)
+    if data:
+        return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+    else:
+        users = UserSerializers(data=request.data)
+        # print("Modified Data :" ,users)   
+        if users.is_valid():
+            users.save()
+            return Response(users.data)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['POST'])
+def user_login(request):
+    print(request.body)
+    data = json.loads(request.body.decode('utf-8'))
+    print(data)
+    email, password = data.get('email'), data.get('password')
+    allUsers = user.objects.all()
+    
+    serializer = UserSerializers(allUsers, many = True)
+    # print(serializer.data)
+    allData = serializer.data
+    print(allUsers)
+    for data in allData:
+        print(data['email'])
+        if data['email'] == email and data['password'] == password:
+            return Response(data, status = 200)
+    else:
+        return Response(" Ivalid credentials ", status = 404)
+ 
+    # return Response(" bhoom", status=404)
+
+@api_view(['PUT'])
+def user_update(request,uname):
+
+    users = user.objects.filter(user_name = uname)
+    if users:
+        users = user.objects.get(user_name = uname)
+        data = UserSerializers(instance=users, data=request.data)
+
+        if data.is_valid():
+            data.save()
+            return Response(data.data)
+        else:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+
+@api_view(['DELETE'])
+def user_delete(request,uname):
+    users = user.objects.filter(user_name = uname)
+
+    if users:
+        users = user.objects.get(user_name = uname)
+        serializer = UserSerializers(users)
+        users.delete()
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 

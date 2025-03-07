@@ -7,7 +7,11 @@ urlpatterns = [
    path('estimated_time/<str:tc>/<str:lc>/<str:sc>/',views.estimated_time,name="estimated_time"),
    path('demo/',views.demo,name="demo"),
    path('load_data/',views.load_data,name="load_data"),
+
+
    path('sqllite3_to_excel/',views.sqllite3_to_excel,name="sqllite3_to_excel"),
+   path('home_to_excel/<str:pname>/',views.home_to_excel,name="home_to_excel"),
+   # path('home_to_excel/',views.home_to_excel,name="home_to_excel"),
    path('report_to_excel/',views.report_to_excel,name="report_to_excel"),
 
 
@@ -23,6 +27,13 @@ urlpatterns = [
    path('report_data_insert/<str:pname>/<int:weeks>/',views.report_insert,name="report_data_insert"),
    path('report_get/<str:pname>/',views.report_get,name="report_get"),
    path('report_update/<str:pname>/',views.report_update,name="report_update"),
-   # path('temp_save/',views.temp_save,name="temp_save"),
+
+
+
+   #user CRUD API's
+   path('user_create/',views.user_create,name="user_create"),
+   path('user_update/<str:uname>',views.user_update,name="user_update"),
+   path('user_delete/<str:uname>',views.user_delete,name="user_delete"),
+   path('user_login/', views.user_login,name="user_login"),
 
 ]

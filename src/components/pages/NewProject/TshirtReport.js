@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Select, Table, Button, Input, message } from 'antd';
 import { createStyles } from 'antd-style';
-import { useParams } from 'react-router-dom';
+import { useParams , Link} from 'react-router-dom';
 import axios from 'axios';
-
+import { useNavigate } from 'react-router-dom';
+import { TbFileExport } from "react-icons/tb";
+import { CgEnter, CgProfile } from "react-icons/cg";
+import {useSelector} from 'react-redux';
 
 const ColorSwatch = ({ color, text }) => {
     return (
@@ -17,13 +20,14 @@ const ColorSwatch = ({ color, text }) => {
             marginRight: '10px',
             borderRadius: '50%'
           }}
-        />
+          />
         <span style={{ fontWeight: 'bold', fontSize: '12px' }}>{text}</span>
       </div>
     );
-  };
- 
+};
+
 const ReportTshirt = () => {
+    const navigate = useNavigate();
     const { projectName } = useParams();
     const { totalEfforts } = useParams();
     const [txt, setTxt] = useState('');
@@ -39,6 +43,33 @@ const ReportTshirt = () => {
     const[popUp, setPopUp] = useState(false);
     const [msgText, setMsgText] = useState();
     const [displayMsgText, setDislayMsgText] = useState(false);
+    const [user_name, setUser_name] = useState(null);
+    const tempName = useSelector((state) => state.user.user);
+    const [showProfile, setShowProfile] = useState(false);
+    const profileRef = useRef(null);
+
+    const handleClick = () => {
+        setShowProfile(!showProfile);
+      };
+    
+      const handleClickOutside = (event) => {
+        if (profileRef.current && !profileRef.current.contains(event.target)) {
+          setShowProfile(false);
+        }
+      };
+    
+      useEffect(() => {
+        if (showProfile) {
+          document.addEventListener('mousedown', handleClickOutside);
+        } else {
+          document.removeEventListener('mousedown', handleClickOutside);
+        }
+    
+        return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+        };
+      }, [showProfile]);
+    
 
     const colorData = [
         { color: 'lightyellow', text: 'Preparation Phase' },
@@ -47,6 +78,11 @@ const ReportTshirt = () => {
         { color: 'lightgreen', text: 'Hypercare Phase' }
         // Add more colors and text here
       ];
+    
+    useEffect(()=>{
+        setUser_name(tempName);
+        console.log(tempName);
+    }, [])
 
     useEffect(() => {
         let temp = [];
@@ -271,39 +307,6 @@ const ReportTshirt = () => {
  
     const middleColumns = [];
  
-    // for (let i = 1; i <= colCnt; i++) {
-    //     middleColumns.push({
-    //         title: `W${i}`,
-    //         dataIndex: `W${i}`,
-    //         key: i,
-    //         render: (text, record, index) => (
-    //             <Input
-    //                 value={text}
-    //                 onChange={(e) => handleInputChange(e, record, `W${i}`)}
-    //             />
-    //         ),
-    //     });
-    // }
-
-
-
-    // for (let i = 1; i <= colCnt; i++) {
-        
-
-    //     middleColumns.push({
-    //         title: `W${i}`,
-    //         dataIndex: `W${i}`,
-    //         key: `W${i}`, // Key should be a string, and it should be unique for each column
-    //         render: (text, record) => ( // No index needed here
-    //             <Input
-    //                 value={text}
-    //                 onChange={(e) => handleInputChange(e, record, `W${i}`)}
-    //             />
-    //         ),
-    //     });
-    // }
-
-
     for (let i = 1; i <= colCnt; i++) {
         const isFirstThree = i < colorrealize;
         const isLastThree = i >= colorlive; // Calculate dynamically
@@ -593,14 +596,57 @@ const ReportTshirt = () => {
  
     return (
         <>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' ,gap: '5px', padding: '15px' }}>
+        <div style={{ 
+            // display: 'flex', flexDirection: 'column',justifyContent: 'space-between'  ,alignItems: 'center' ,
+            gap: '5px', padding: '15px' }}>
             
-            <div style={{ marginBottom: '20px' }}>
-                <h1>Project Timeline</h1>
+        <div style={{ marginBottom: '20px', marginLeft: '442px',
+             display: 'flex', flexDirection: 'column',alignItems: 'center' }}>
+                <div style={{ position: 'absolute', left: '25px',alignContent:'center', marginTop:'6px'  }}>                
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz6s3WZNZAaKEXsBVRXuMDagabISvp0gqDRw&s"
+                    style={{width: '100px', height: '50px', marginRight:'10px', cursor: 'pointer' }}
+                    onClick={()=>{
+                        console.log('clicked');
+                        navigate(`/`);}}
+                    ></img>
+                </div>
+                <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                    <h1>Project TimeLine</h1>
+                    <div style={{display: 'inline'}}>
+                    <CgProfile style={{ alignItems: 'center', marginLeft: '400px', width: '2.5rem',
+                     height: '2.5rem', marginTop:'7px', cursor: 'pointer',  }}
+                    onClick={handleClick}/>
+                    {showProfile && (
+                        <div
+                        ref={profileRef}
+                        style={{
+                            position: 'absolute',
+                            top: '4rem', // Adjust as needed
+                            left: '1150px',//adjust as needed
+                            backgroundColor: 'white',
+                            border: '1px solid #ccc',
+                            padding: '10px',
+                            zIndex: 10,
+                            borderRadius: '5px',
+                            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+                        }}
+                        >
+                        <p>{user_name}</p>
+                        <button 
+                        onClick={()=>{
+                          navigate('/');  
+                        }}
+                        >Logout</button>
+                        </div>
+                    )}
+                    </div>
+                </div>
             </div>
+                
+            
 
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'nowrap' }}> {/* Key change: flexWrap: 'nowrap' */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}> {/* Key change: flexWrap: 'nowrap' */}
                 <label style={{ marginRight: '10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                     Project TimeLine Duration(In weeks):
                 </label>
@@ -673,16 +719,22 @@ const ReportTshirt = () => {
                     onClick={handleExcel}
                     type="primary"
                     style={{
-                        backgroundColor: '#4CAF50',
+                        // backgroundColor: '#4CAF50',
                         color: 'white',
                         padding: '8px 16px',
                         border: 'none',
                         borderRadius: '4px',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
+                        ':hover': {
+                            backgroundColor: '#45a049',
+                            content : 'Hii' // Example hover color
+                          }
+                        
                     }}
                 >
-                    Export to Excel
+                    {/* Export to Excel */}
+                    <TbFileExport />
                 </Button>
             </div>
             {error && <p style={{ color: 'red' }}>{error}</p>}

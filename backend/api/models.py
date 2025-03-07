@@ -39,7 +39,19 @@ class values(models.Model):
         unique_together = ('transformation_complexity', 'load_complexity','source_complexity')
 
 
+class user(models.Model):
+    user_name = models.CharField(primary_key=True,max_length=255)
+    password = models.CharField(null=True,blank=True,max_length=255)
+    email = models.CharField(null=True,blank=True,max_length=255)
+
+
+
 class projects(models.Model):
+    user_name = models.ForeignKey(
+        user,
+        on_delete=models.CASCADE,
+        related_name='user_proj'
+    )
     project_name = models.CharField(primary_key=True,max_length=255)
     objects_count = models.BigIntegerField(null=True , blank=True ,default=0)
     total_efforts = models.FloatField(null=True,blank=True,default=0)

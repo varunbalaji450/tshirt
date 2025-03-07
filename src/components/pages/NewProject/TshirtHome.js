@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { SearchOutlined, HomeOutlined } from '@ant-design/icons';
 import { Alert } from "antd";
+// import yash_logo from "../../../"
 
 const TshirtHome = () => {
     const navigate = useNavigate();
@@ -13,6 +15,8 @@ const TshirtHome = () => {
     const [formValues, setFormValues] = useState({ textField: '' });
     const [loading,setLoading]=useState(false);
     const [errorAlert, setErrorAlert] = useState(null);
+    const [searchText, setSearchText] = useState('');
+    const [searchData, setSearchData] = useState([]);
     // const temp = [
     //     {
     //         project_name: 'abcd',
@@ -94,6 +98,17 @@ const TshirtHome = () => {
                     View
                 </Button>
             ),
+        },
+        {
+            title: 'Export Effort',
+            dataIndex: 'project_name',
+            key: 'project_name',
+            align: 'center',
+            render: (text, record) => ( // Access record to pass data to the function
+                <Button type="primary" onClick={() => handleExcel(text, record)}>
+                    Export
+                </Button>
+            ),
         }
     ];
     const handelCreateProject = ()=>{
@@ -173,21 +188,142 @@ const TshirtHome = () => {
         
     }
 
+    const handleSearchChange = (e) => {
+        setSearchText(e.target.value);
+        setSearchData([]);
+    };
+
+    const handleSearch = (e)=>{
+        console.log('handel search');
+        let temp = []
+        if(allData.length>0)
+        {
+            temp = allData.filter((obj)=>{
+                return obj.project_name.toLowerCase().includes(searchText.toLowerCase())
+            })
+            console.log(searchText);
+            console.log(temp);
+            setSearchData(temp);
+        }
+    }
+
+
   const handleInputChange = (event) => {
     setFormValues({ ...formValues, textField: event.target.value });
   };
+
+
+
+  const handleExcel = async (text,record) => {
+    try {
+ 
+
+            const downloadResponse = await axios.get(`http://127.0.0.1:8000/home_to_excel/${record.project_name}/`,
+            {
+                responseType: 'blob', // C rucial: Get response as a blob
+            });
+
+            console.log('Excel downloaded Successfully');
+            console.log(downloadResponse);
+
+            const blob = new Blob([downloadResponse.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${record.project_name}__Efforts.xlsx`; // Set the filename
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url); // Release the blob URL (important!)
+
+    } catch (error) {
+        console.error("Error:", error);
+
+        
+
+        if (error.response) {
+            // console.error("Response data:", error.response.data);
+            // console.error("Response status:", error.response.status);
+            // console.error("Response headers:", error.response.headers);
+            if (error.response.status === 400) {
+                // console.error("400 Error: Bad Request");
+                // You can also display a user-friendly error message here
+                message.warning('The Project has no efforts first save your effort and then download your effort', 1.3);
+            }
+        } else if (error.request) {
+            console.error("Request:", error.request);
+        } else {
+            console.error("Message:", error.message);
+        }
+    }
+};
+
     return (
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '20px', display: 'inline'}}>
+                <div style={{ position: 'absolute', left: '25px',alignContent:'center', marginTop:'6px'  }}>                
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz6s3WZNZAaKEXsBVRXuMDagabISvp0gqDRw&s"
+                    style={{width: '100px', height: '50px', marginRight:'10px',cursor: 'pointer' }}
+                    
+                    onClick={()=>{
+                        <Link to="/home"></Link>
+                    }}
+                    ></img>
+                </div>
+
                 <h1>Data Migration - Effort and Estimation Report</h1>
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
             <Button
-                style={{ backgroundColor: 'blue', color: 'white', marginBottom: '20px' }}
-                onClick={handelCreateProject}
+              style={{
+                backgroundColor: 'blue',
+                color: 'white',
+                marginRight: '400px',
+                marginLeft: '450px',
+
+                // Remove marginBottom: '20px'
+                height: '36px', // Match input height
+              }}
+              onClick={handelCreateProject}
             >
-                Create Project
+              Create Project
             </Button>
+            <div style={{display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '25px', marginBottom: '10px', overflow: 'hidden'}}>
+            <Input
+              type="text"
+              placeholder="Search Objects"
+              value={searchText}
+              onChange={handleSearchChange}
+              onPressEnter={handleSearch}
+            style={{
+                border: 'none',
+                padding: '8px 12px',
+                flexGrow: 1,
+                borderRadius: 0,
+                boxShadow: 'none',
+                outline: 'none', 
+            }}
+            />
+          
+            <button
+              onClick={handleSearch}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: '8px 12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 0,
+                outline: 'none', // Optional: Remove focus outline
+            }}
+            >
+                
+              <SearchOutlined style={{ fontSize: '18px' }} />
+            </button></div>
+          </div>
             {errorAlert && (
                 <Alert
                     message={errorAlert}
@@ -197,7 +333,8 @@ const TshirtHome = () => {
                 />
             )}
             <div style={{ width: '100%' }} className='hometable'> {/* Table takes full width */}
-                <Table columns={columns} dataSource={allData} />
+                {searchData.length > 0 && <Table columns={columns} dataSource={searchData} />}
+                {searchData.length === 0 && <Table columns={columns} dataSource={allData} />}
             </div>
 
             {displayDiv && (
