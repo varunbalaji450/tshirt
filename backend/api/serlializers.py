@@ -24,12 +24,3 @@ class ProjectSerializers(serializers.ModelSerializer):
         model = projects
         fields = '__all__'
 
-class UserSerializers(serializers.ModelSerializer):
-    class Meta:
-        model = user
-        fields = '__all__'
-
-# class TempSerializers(serializers.ModelSerializer):
-#     class Meta:
-#         model = temp_efforts
-#         fields = '__all__'

@@ -279,8 +279,8 @@ const TshirtHome = () => {
               style={{
                 backgroundColor: 'blue',
                 color: 'white',
-                marginRight: '400px',
-                marginLeft: '450px',
+                marginRight: '300px',
+                marginLeft: '550px',
 
                 // Remove marginBottom: '20px'
                 height: '36px', // Match input height

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { TbFileExport } from "react-icons/tb";
 import { CgEnter, CgProfile } from "react-icons/cg";
 import {useSelector} from 'react-redux';
+import { FaDownload } from "react-icons/fa6";
 
 const ColorSwatch = ({ color, text }) => {
     return (
@@ -146,6 +147,7 @@ const ReportTshirt = () => {
             `,
         };
     });
+
  
     // const handleSelectChange = (index, field, value) => {
     //     setDataSource(prevDataSource => {
@@ -211,7 +213,9 @@ const ReportTshirt = () => {
         const newValue = e.target.value;
         
         const value = e.target.value;
-        if (/^\d*$/.test(value)) 
+        // if (/^\d*$/.test(value)) 
+        if (/^\d+(\.\d{0,1})?$/.test(value))
+
         { // Allow only integers
             
             setDataSource(prevDataSource => {
@@ -221,7 +225,8 @@ const ReportTshirt = () => {
     
                         let totalDays = 0;
                         for (let i = 1; i <= colCnt; i++) {
-                            const weekValue = parseInt(updatedItem[`W${i}`], 10) || 0;
+                            // const weekValue = parseInt(updatedItem[`W${i}`], 10) || 0;
+                            const weekValue = parseFloat(updatedItem[`W${i}`]) || 0.0;
                             totalDays += weekValue;
                         }
     
@@ -600,7 +605,7 @@ const ReportTshirt = () => {
             // display: 'flex', flexDirection: 'column',justifyContent: 'space-between'  ,alignItems: 'center' ,
             gap: '5px', padding: '15px' }}>
             
-        <div style={{ marginBottom: '20px', marginLeft: '442px',
+        <div style={{ marginBottom: '20px', marginLeft: '50px',
              display: 'flex', flexDirection: 'column',alignItems: 'center' }}>
                 <div style={{ position: 'absolute', left: '25px',alignContent:'center', marginTop:'6px'  }}>                
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz6s3WZNZAaKEXsBVRXuMDagabISvp0gqDRw&s"
@@ -613,32 +618,6 @@ const ReportTshirt = () => {
                 <div style={{display: 'flex', justifyContent: 'space-between'}}>
                     <h1>Project TimeLine</h1>
                     <div style={{display: 'inline'}}>
-                    <CgProfile style={{ alignItems: 'center', marginLeft: '400px', width: '2.5rem',
-                     height: '2.5rem', marginTop:'7px', cursor: 'pointer',  }}
-                    onClick={handleClick}/>
-                    {showProfile && (
-                        <div
-                        ref={profileRef}
-                        style={{
-                            position: 'absolute',
-                            top: '4rem', // Adjust as needed
-                            left: '1150px',//adjust as needed
-                            backgroundColor: 'white',
-                            border: '1px solid #ccc',
-                            padding: '10px',
-                            zIndex: 10,
-                            borderRadius: '5px',
-                            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
-                        }}
-                        >
-                        <p>{user_name}</p>
-                        <button 
-                        onClick={()=>{
-                          navigate('/');  
-                        }}
-                        >Logout</button>
-                        </div>
-                    )}
                     </div>
                 </div>
             </div>
@@ -733,8 +712,9 @@ const ReportTshirt = () => {
                         
                     }}
                 >
+                    <FaDownload />
                     {/* Export to Excel */}
-                    <TbFileExport />
+                    {/* <TbFileExport /> */}
                 </Button>
             </div>
             {error && <p style={{ color: 'red' }}>{error}</p>}

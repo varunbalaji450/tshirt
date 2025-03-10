@@ -30,10 +30,5 @@ urlpatterns = [
 
 
 
-   #user CRUD API's
-   path('user_create/',views.user_create,name="user_create"),
-   path('user_update/<str:uname>',views.user_update,name="user_update"),
-   path('user_delete/<str:uname>',views.user_delete,name="user_delete"),
-   path('user_login/', views.user_login,name="user_login"),
 
 ]

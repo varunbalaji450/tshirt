@@ -483,8 +483,7 @@ def project_create(request):
         "project_name" : pname,
         "objects_count" : 0,
         "total_efforts" : 0,
-        "table_name" : '',
-        "user_name"  : "yash"
+        "table_name" : ''
     }
     data = projects.objects.filter(project_name=pname)
     if data:
@@ -801,13 +800,16 @@ def report_insert(pname,weeks,realize,live):
                 resources = math.ceil(resources) 
             else:
                 resources =  math.floor(resources)  
-
+            resources = resources + 1
             insert_data = []
 
             temp_consultants = []
             if 1 <= resources <= 4:
                 for i in range(resources):
-                    if i == 0:
+
+                    if i == 0 :
+                        temp_consultants.append("Project Manager")
+                    elif i == 1:
                         temp_consultants.append("Lead - Data Migration Consultant")
                     # elif i == 1:
                     #     temp_consultants.append("Sr Data Migration Consultant")
@@ -816,16 +818,20 @@ def report_insert(pname,weeks,realize,live):
             elif 4 <= resources <= 6:
                 for i in range(resources):
                     if i == 0:
+                        temp_consultants.append("Project Manager")
+                    elif i == 1:
                         temp_consultants.append("Lead - Data Migration Consultant")
-                    elif i == 1 or i == 2:
+                    elif i == 2 or i == 3:
                         temp_consultants.append("Sr Data Migration Consultant")
                     else:
                         temp_consultants.append("Data Migration Consultant")
             elif resources > 6:
                 for i in range(resources):
                     if i == 0:
+                        temp_consultants.append("Project Manager")
+                    elif i == 1:
                         temp_consultants.append("Lead - Data Migration Consultant")
-                    elif i == 1 or i == 2:
+                    elif i == 2 or i == 3:
                         temp_consultants.append("Sr Data Migration Consultant")
                     else:
                         temp_consultants.append("Data Migration Consultant")
@@ -847,13 +853,20 @@ def report_insert(pname,weeks,realize,live):
                 t_d = 0
                 t_h = 0
                 for i in range(weeks):
-                    if data["Yash_Consultant"] == "Lead - Data Migration Consultant":
+
+                    if data["Yash_Consultant"] == "Project Manager":
+                            w = f"W{i + 1}"  # Use f-string for cleaner formatting
+                            data[w] = 2.5  # Or any other default value for the weeks
+                            t_d += data[w]
+                            t_h = t_d * 8
+
+                    elif data["Yash_Consultant"] == "Lead - Data Migration Consultant":
                             w = f"W{i + 1}"  # Use f-string for cleaner formatting
                             data[w] = 5  # Or any other default value for the weeks
                             t_d += data[w]
                             t_h = t_d * 8
                     else:
-                        if (i+1) < realize or (i+1) >= live:
+                        if (i+1) < realize or (i+1) > live:
                             w = f"W{i + 1}"  # Use f-string for cleaner formatting
                             data[w] = 0  # Or any other default value for the weeks
                             # t_d += data[w]
@@ -954,71 +967,3 @@ def report_update(request,pname):
         return Response("Done")
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-@api_view(['POST'])
-def user_create(request):
-
-    data = user.objects.filter(user_name=request.data['user_name'])
-    # print("Recieved Data :" ,request.data)
-    if data:
-        return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
-    else:
-        users = UserSerializers(data=request.data)
-        # print("Modified Data :" ,users)   
-        if users.is_valid():
-            users.save()
-            return Response(users.data)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-    
-@api_view(['POST'])
-def user_login(request):
-    print(request.body)
-    data = json.loads(request.body.decode('utf-8'))
-    print(data)
-    email, password = data.get('email'), data.get('password')
-    allUsers = user.objects.all()
-    
-    serializer = UserSerializers(allUsers, many = True)
-    # print(serializer.data)
-    allData = serializer.data
-    print(allUsers)
-    for data in allData:
-        print(data['email'])
-        if data['email'] == email and data['password'] == password:
-            return Response(data, status = 200)
-    else:
-        return Response(" Ivalid credentials ", status = 404)
- 
-    # return Response(" bhoom", status=404)
-
-@api_view(['PUT'])
-def user_update(request,uname):
-
-    users = user.objects.filter(user_name = uname)
-    if users:
-        users = user.objects.get(user_name = uname)
-        data = UserSerializers(instance=users, data=request.data)
-
-        if data.is_valid():
-            data.save()
-            return Response(data.data)
-        else:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-    else:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    
-
-@api_view(['DELETE'])
-def user_delete(request,uname):
-    users = user.objects.filter(user_name = uname)
-
-    if users:
-        users = user.objects.get(user_name = uname)
-        serializer = UserSerializers(users)
-        users.delete()
-        return Response(serializer.data,status=status.HTTP_200_OK)
-    else:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
