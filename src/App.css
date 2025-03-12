@@ -177,12 +177,12 @@ main::-webkit-scrollbar{
 
  
 .ant-table-thead > tr > th {
-  background-color: #a4acb4 !important; 
-  color: black !important;
+  background-color: #333767 !important; 
+  color: white !important;
   padding: 0 0 0 0 !important;
   height: 50px !important;
   min-width: 90px !important;
-  border: 5px solid #a4acb4 !important;
+  border: 5px solid #333767 !important;
   /* text-align: center !important; */
 } 
 .ant-table-tbody > tr > td {
@@ -259,4 +259,9 @@ main::-webkit-scrollbar{
 
 .report-table .ant-table .ant-table-tbody > tr > td:nth-child(1){
   width: 200px;
+}
+
+
+body{
+  overflow: hidden;
 }

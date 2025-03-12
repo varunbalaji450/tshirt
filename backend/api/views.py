@@ -704,6 +704,7 @@ def report_creation(request):
     weeks = request.data['weeks']
     realize = request.data['realize']
     live = request.data['live']
+    iterations = request.data['iterations']
 
     prj = projects.objects.get(project_name=pname)
 
@@ -753,7 +754,7 @@ def report_creation(request):
         prj.realize = realize
         prj.live = live
         prj.save()
-        report_insert(pname,weeks,realize,live)
+        report_insert(pname,weeks,realize,live,iterations)
 
 
 
@@ -786,14 +787,37 @@ def report_creation(request):
 
 
 # @api_view(['POST'])
-def report_insert(pname,weeks,realize,live):
+def report_insert(pname,weeks,realize,live,iterations):
 
     prj = projects.objects.filter(project_name=pname)
     if prj:
         prj = projects.objects.get(project_name=pname)
         if prj.table_name is not None:
-            total_effort = prj.total_efforts
-            print(total_effort)
+            total_effort = 0
+            prj_efforts = project_efforts.objects.filter(project_name = prj.project_name)
+            for p in prj_efforts:
+                # print(p.object_development)
+                total_effort+=float(p.object_development or 0)
+                total_effort+=float(p.production_data_loads or 0)
+                if iterations == 1:
+                    total_effort+=float(p.iteration_1_data_loading or 0)
+                    total_effort+=float(p.iteration_1_defects or 0)
+                elif iterations == 2:
+                    total_effort+=float(p.iteration_1_data_loading or 0)
+                    total_effort+=float(p.iteration_1_defects or 0)
+                    total_effort+=float(p.iteration_2_data_loading or 0)
+                    total_effort+=float(p.iteration_2_defects or 0)
+                else:
+                    total_effort+=float(p.iteration_1_data_loading or 0)
+                    total_effort+=float(p.iteration_1_defects or 0)
+                    total_effort+=float(p.iteration_2_data_loading or 0)
+                    total_effort+=float(p.iteration_2_defects or 0)
+                    total_effort+=float(p.iteration_3_data_loading or 0)
+                    total_effort+=float(p.iteration_3_defects or 0)
+                    
+
+            # total_effort = prj.total_efforts
+            print("Total Efforts are :",total_effort)
             resources = total_effort/(weeks*5)
 
             if resources % 1 > 0.6:  

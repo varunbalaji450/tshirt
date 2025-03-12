@@ -1,61 +1,112 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Input, Table, Select, Button, message} from "antd";
-import axios from 'axios';
+import axios, { all } from 'axios';
 import { useParams } from 'react-router-dom';
 import { SearchOutlined, HomeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import $ from 'jquery';
+import { AiFillDownSquare } from 'react-icons/ai';
 const { Option } = Select;
 
 const Tshirt = () => {
-
     const navigate = useNavigate();
     const [masterData, setMasterData] = useState([]);
+    const [allData, setAllData] = useState();
     const [tempmasterData, setTempMasterData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [projects, setProjects] = useState([]);
     const [selectedProject, setSelectedProject] = useState();
     const [inscopeData, setInscopeData] = useState([]);
+    const [inscopeBool, setInscopeBool] = useState(false);
+
     const [outscopeData, setOutscopeData] = useState([]);
+    const [outscopeBool, setOutscopeBool] = useState(false);
+
     const { projectName } = useParams();
     const [searchText, setSearchText] = useState('');
     const [searchData, setSearchData] = useState([]);
     const tableRef = useRef(null);
-    
-    const handelInscopeData = ()=>{
-        if(inscopeData.length>0){
-            setInscopeData([]);
-            return;
+    useEffect(() => {
+        setSelectedProject(projectName);
+        try{
+            setMasterData([]);
+            setAllData([]);
+            axios.get('http://127.0.0.1:8000/project_get/').then(res=>{
+                console.log('response recieved successfully');
+                console.log(res);
+                setProjects(res.data);          
+                console.log(projects);
+                
+            }).catch(err=>{
+                console.log(err);                
+            })
+        }catch(err){
+            console.log(err);
+        };
+        handleProjectChange(projectName);
+    }, []);    
+    useEffect(() => {
+        if (tableRef.current) {
+            tableRef.current.scrollTop = tableRef.current.scrollHeight; // Instant scroll
+            //OR
+            // tableRef.current.scrollIntoView({ behavior: 'smooth' }); // Smooth scroll
         }
-        setInscopeData([]);
-        setOutscopeData([]);
-        console.log(masterData)
-        const temp = masterData.filter((obj)=>{
-            console.log(obj.scope);            
-            return obj.scope && obj.scope.toLowerCase() === 'inscope';
-        });
-        console.log(temp);
-        setInscopeData([]);
-        setOutscopeData([]);
-        setInscopeData(temp);
+    }, [masterData, searchData, inscopeData, outscopeData]); // Correct dependency array
+
+    const handelInscopeData = ()=>{
+        if(inscopeBool){
+            setInscopeBool(false);
+            setOutscopeBool(false);
+            // setAllData(masterData);
+            setAllData([]);
+            setTimeout(() => {
+                setAllData(masterData);
+            }, 10);
+        }else{
+            console.log("Hello in HandlInscope Else");
+            setOutscopeBool(false);
+            setAllData([]);
+            setTimeout(() => {
+                console.log(masterData);
+                const temp = masterData.filter((obj)=>{
+                    console.log(obj.scope);            
+                    return obj.scope && obj.scope.toLowerCase() === 'inscope';
+                });
+                console.log(temp);
+                setAllData(temp);
+                setInscopeBool(true);
+            }, 10);
+        }
+        
+        
     }
     const handelOutscopeData = ()=>{
-        if(outscopeData.length>0){
-            setOutscopeData([]);
+        if(outscopeBool){
+            setAllData([]);
+            setOutscopeBool(false);
+            setInscopeBool(false);
+            setTimeout(() => {
+                setAllData(masterData);
+            }, 0);
+            
             return;
         }
-        setInscopeData([]);
-        setOutscopeData([]);
-        console.log(masterData)
-        const temp = masterData.filter((obj)=>{
-            console.log(obj.scope);            
-            return obj.scope && obj.scope.toLowerCase() === 'outscope';
-        });
-        console.log(temp);
-        setInscopeData([]);
-        setOutscopeData([]);
-        setOutscopeData(temp);
+        setInscopeBool(false);
+        // setInscopeData([]);
+        // setOutscopeData([]);
+        setAllData([]);
+        setTimeout(() => {
+            // console.log(masterData);
+            const temp = masterData.filter((obj)=>{
+                console.log(obj.scope);            
+                return obj.scope && obj.scope.toLowerCase() === 'outscope';
+            });
+            // console.log(temp);
+            setAllData(temp);
+            setOutscopeBool(true);
+        }, 10);
     }
+ 
+   // NO CHANGE
     const columns = [
         {
             title: 'Objects',
@@ -244,9 +295,7 @@ const Tshirt = () => {
             align: 'center',
         },
     ];
-
-    
- 
+    // NO CHANGE
     const handelSaveTable = ()=>{
         // saving project int db
         console.log(selectedProject);
@@ -269,8 +318,7 @@ const Tshirt = () => {
         }, 1500);
         
     };
-
-
+     // NO CHANGE
     const handleExcel = async () => {
         try {
             // const saveResponse = await axios.post(`http://127.0.0.1:8000/temp_save/`, 
@@ -279,7 +327,7 @@ const Tshirt = () => {
             // console.log(saveResponse.data);
     
             const downloadResponse = await axios.post(`http://127.0.0.1:8000/sqllite3_to_excel/`, 
-                inscopeData.length>0?inscopeData:outscopeData.length>0 ? outscopeData:masterData, 
+                allData, 
             {
                 responseType: 'blob', // C rucial: Get response as a blob
             });
@@ -311,135 +359,433 @@ const Tshirt = () => {
             }
         }
     };
-
-
-
     const handleInputChange = (index, field, value) => {
         const newData = [...masterData];
         newData[index][field] = value;
         // alert();
         setMasterData(newData);
+        setAllData(newData);
     };
-
     const handleScopeChange = (index, scope) => {
         console.log(scope);
-        
     };
-    
-
-
-    
     const handleSelectChange = async (index, field, value) => {
-        setLoading(true);
-        const updatedRow = { ...masterData[index], [field]: value };
-        const requiredFieldsFilled = checkRequiredFields(updatedRow);
-
-        if (requiredFieldsFilled) {
-            try {
-                console.log(updatedRow);
-                let transComplexcity = updatedRow?.transformation_complexity
-                let loadComplexcity = updatedRow?.load_complexity
-                let sourceComplexcity = updatedRow?.source_complexity
-                let data_object = updatedRow?.data_object_type
-                let scope = updatedRow?.scope;
-                const updatedMasterData = masterData.map((item, i) => {
-                    if (i === index) {
-                      return { ...item, scope: scope }; // FSearcha new object with the updated scope
-                    } else {
-                      return item; // Return the original object if not the one being updated
+        if(inscopeBool === true){
+            // console.log("inscope");
+            // console.log(allData);
+            // console.log(index, field, value);        
+            setLoading(true);
+            const updatedRow = { ...allData[index], [field]: value };
+            // console.log(updatedRow);
+            const requiredFieldsFilled = checkRequiredFields(updatedRow);
+            if (requiredFieldsFilled) {
+                try {
+                    // console.log(updatedRow);
+                    let transComplexcity = updatedRow?.transformation_complexity
+                    let loadComplexcity = updatedRow?.load_complexity
+                    let sourceComplexcity = updatedRow?.source_complexity
+                    let data_object = updatedRow?.data_object_type
+                    let scope = updatedRow?.scope;
+                    const updatedMasterData = allData.map((item, i) => {
+                        if (i === index) {
+                        return { ...item, scope: scope }; // FSearcha new object with the updated scope
+                        } else {
+                        return item; // Return the original object if not the one being updated
+                        }
+                    });
+                    // console.log(updatedMasterData);
+                    
+                    setAllData(updatedMasterData);
+                    if(scope.toLowerCase() === "inscope"){
+                        // console.log('true');
+                    }else{
+                        // console.log('false');
                     }
-                  });
-                //   alert();
-                setMasterData(updatedMasterData);
-                console.log(transComplexcity," ",loadComplexcity, " ", sourceComplexcity)
-                console.log('scope', scope);
-                if(scope.toLowerCase() === "inscope"){
-                    console.log('true');
-                    
-                }else{
-                    console.log('false');
-                    
-                }
-                console.log(' update row');
+                    // console.log(' update row');
+                    setLoading(false);
+                    if(scope.toLowerCase() === "inscope"){
+                        console.log(allData);
+                        
+                        const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
+                        let finalData = {
+                            "id": allData[index]?.id,
+                            "object": allData[index]?.object,
+                            "module": allData[index]?.module,
+                            "data_object_type": data_object,
+                            "transformation_complexity": response?.data[0]?.transformation_complexity,
+                            "load_complexity": response?.data[0]?.load_complexity,
+                            "source_complexity": response?.data[0]?.source_complexity,
+                            "scope": scope,
+                            "object_development": response?.data[0]?.object_development,
+                            "iteration_1_data_loading": response?.data[0]?.iteration_1_data_loading,
+                            "iteration_1_defects": response?.data[0]?.iteration_1_defects,
+                            "iteration_2_data_loading": response?.data[0]?.iteration_2_data_loading,
+                            "iteration_2_defects": response?.data[0]?.iteration_2_defects,
+                            "iteration_3_data_loading": response?.data[0]?.iteration_3_data_loading,
+                            "iteration_3_defects": response?.data[0]?.iteration_3_defects,
+                            "production_data_loads": response?.data[0]?.production_data_loads,
+                            "total": response?.data[0]?.total
+                        };
+                        // console.log(' final master data');
+                        // console.log(finalData);
+                        const newData = [...allData];
+                        newData[index] = finalData;
+                        // console.log(newData);
+                        // alert();
+                        // setMasterData(newData);
+                        // console.log(newData);                        
+                        setAllData(newData);
+                    }else{
+                        console.log(allData);
+
+                        // console.log("out scope line 432");
+                        // console.log(allData[index])
+                        let finalData = {
+                            "id": allData[index]?.id,
+                            "object": allData[index]?.object,
+                            "module": allData[index]?.module,
+                            "data_object_type": data_object,
+                            "transformation_complexity":transComplexcity,
+                            "load_complexity":loadComplexcity, 
+                            "source_complexity":sourceComplexcity,
+                            "scope": scope,
+                            "object_development": null,
+                            "iteration_1_data_loading":null ,
+                            "iteration_1_defects": null,
+                            "iteration_2_data_loading": null,
+                            "iteration_2_defects": null,
+                            "iteration_3_data_loading":null ,
+                            "iteration_3_defects": null,
+                            "production_data_loads": null,
+                            "total":0        
+                        };
+                        // now remove final data in allData and append this updated data to master data
+                        
+                        // console.log(finalData);
+                        // console.log("bhoooooom");
+                        setAllData([]);
+                        setTimeout(() => {
+                            const newData = allData.filter((obj) => obj.id !== finalData.id);
+                            // console.log(newData);
+                            setAllData(newData);
+                            const updatedMasterData = masterData.map(element => {
+                                if (element.id === finalData.id) {
+                                    // Create a new object with the updated scope
+                                    // return { ...element, scope: finalData.scope }
+                                    return finalData;;
+
+                                }
+                                return element; // Keep other elements unchanged
+                            });
+                            
+                            setMasterData(updatedMasterData);
+                        }, 1);
+                        // setTimeout(() => {
+                            
+                        // }, 10);
+                        
+                        // now update in master data
+                        
+                    }
+                } catch (error) {
+                    console.error("Error updating data:", error);
+                    // Handle error
+                } finally {
+                }    
+            } else {
+                const newData = [...allData];
+                newData[index][field] = value;
+
+                // setMasterData(newData);
+                setAllData(newData);
                 setLoading(false);
-                console.log(updatedRow); 
-                if(scope.toLowerCase() === "inscope"){
-                    const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
-                    // const newData = [...masterData];
-                    // newData[index] = response.data[0];
-                    // console.log(newData);
-                    
-                    // setMasterData(newData);
-                    // console.log(response.data);
-                    console.log(masterData[index])
-                    let finalData = {
-                        "object": masterData[index]?.object,
-                        "module": masterData[index]?.module,
-                        "data_object_type": data_object,
-                        "transformation_complexity": response?.data[0]?.transformation_complexity,
-                        "load_complexity": response?.data[0]?.load_complexity,
-                        "source_complexity": response?.data[0]?.source_complexity,
-                        "scope": scope,
-                        "object_development": response?.data[0]?.object_development,
-                        "iteration_1_data_loading": response?.data[0]?.iteration_1_data_loading,
-                        "iteration_1_defects": response?.data[0]?.iteration_1_defects,
-                        "iteration_2_data_loading": response?.data[0]?.iteration_2_data_loading,
-                        "iteration_2_defects": response?.data[0]?.iteration_2_defects,
-                        "iteration_3_data_loading": response?.data[0]?.iteration_3_data_loading,
-                        "iteration_3_defects": response?.data[0]?.iteration_3_defects,
-                        "production_data_loads": response?.data[0]?.production_data_loads,
-                        "total": response?.data[0]?.total
-                    };
-                    console.log(' final master data');
-                    console.log(finalData);
-                    const newData = [...masterData];
-                    newData[index] = finalData;
-                    console.log(newData);
-                    // alert();
-                    setMasterData(newData);
-                }else{
-                    console.log(masterData[index])
-                    let finalData = {
-                        "object": masterData[index]?.object,
-                        "module": masterData[index]?.module,
-                        "data_object_type": data_object,
-                        "transformation_complexity":transComplexcity,
-                        "load_complexity":loadComplexcity, 
-                        "source_complexity":sourceComplexcity,
-                        "scope": scope,
-                        "object_development": null,
-                        "iteration_1_data_loading":null ,
-                        "iteration_1_defects": null,
-                        "iteration_2_data_loading": null,
-                        "iteration_2_defects": null,
-                        "iteration_3_data_loading":null ,
-                        "iteration_3_defects": null,
-                        "production_data_loads": null,
-                        "total":0        
-                      };
-                    console.log(' final master data');
-                    console.log(finalData);
-                    const newData = [...masterData];
-                    newData[index] = finalData;
-                    console.log(newData);
-                    // alert();
-                    setMasterData(newData);
-                }
-            } catch (error) {
-                console.error("Error updating data:", error);
-                // Handle error
-            } finally {
-                
             }
+        }else if(outscopeBool=== true){
+            setLoading(true);
+            const updatedRow = { ...allData[index], [field]: value };
+            // console.log(updatedRow);
+            const requiredFieldsFilled = checkRequiredFields(updatedRow);
+            if (requiredFieldsFilled) {
+                try {
+                    // console.log(updatedRow);
+                    let transComplexcity = updatedRow?.transformation_complexity
+                    let loadComplexcity = updatedRow?.load_complexity
+                    let sourceComplexcity = updatedRow?.source_complexity
+                    let data_object = updatedRow?.data_object_type
+                    let scope = updatedRow?.scope;
+                    const updatedMasterData = allData.map((item, i) => {
+                        if (i === index) {
+                        return { ...item, scope: scope }; // FSearcha new object with the updated scope
+                        } else {
+                        return item; // Return the original object if not the one being updated
+                        }
+                    });
+                    console.log(updatedMasterData);
                     
-        } else {
-            const newData = [...masterData];
-            newData[index][field] = value;
-            // alert();
-            setMasterData(newData);
-            setLoading(false);
+                    setAllData(updatedMasterData);
+                    // ---------------------------------------------------------------------------------------
+                    if(scope.toLowerCase() === "inscope"){
+                        // console.log('true');
+                    }else{
+                        // console.log('false');
+                    }
+                    // console.log(' update row');
+                    setLoading(false);
+                    if(scope.toLowerCase() === "inscope"){
+                        console.log(allData);
+                        
+                        const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
+                        let finalData = {
+                            "id": allData[index]?.id,
+                            "object": allData[index]?.object,
+                            "module": allData[index]?.module,
+                            "data_object_type": data_object,
+                            "transformation_complexity": response?.data[0]?.transformation_complexity,
+                            "load_complexity": response?.data[0]?.load_complexity,
+                            "source_complexity": response?.data[0]?.source_complexity,
+                            "scope": scope,
+                            "object_development": response?.data[0]?.object_development,
+                            "iteration_1_data_loading": response?.data[0]?.iteration_1_data_loading,
+                            "iteration_1_defects": response?.data[0]?.iteration_1_defects,
+                            "iteration_2_data_loading": response?.data[0]?.iteration_2_data_loading,
+                            "iteration_2_defects": response?.data[0]?.iteration_2_defects,
+                            "iteration_3_data_loading": response?.data[0]?.iteration_3_data_loading,
+                            "iteration_3_defects": response?.data[0]?.iteration_3_defects,
+                            "production_data_loads": response?.data[0]?.production_data_loads,
+                            "total": response?.data[0]?.total
+                        };
+                        // console.log(' final master data');
+                        console.log(finalData);
+                        // const newData = [...allData];
+                        // newData[index] = finalData;
+                        // console.log(newData);
+                        // alert();
+                        // setMasterData(newData);
+                        // console.log(newData);                        
+                        setAllData([]);
+                        console.log(
+                            "nulled alldata"
+                        );
+                        
+                        setTimeout(() => {
+                            const newData = allData.filter((obj) => obj.id !== finalData.id);
+                            console.log(newData);
+                            setAllData(newData);
+                            const updatedMasterData = masterData.map(element => {
+                                if (element.id === finalData.id) {
+                                    // Create a new object with the updated scope
+                                    // return { ...element, scope: finalData.scope }
+                                    return finalData;;
+
+                                }
+                                return element; // Keep other elements unchanged
+                            });
+                            
+                            setMasterData(updatedMasterData);
+                        }, 1);
+                    }else{
+                        // console.log("out scope line 432");
+                        // console.log(allData[index])
+                        let finalData = {
+                            "id": allData[index]?.id,
+                            "object": allData[index]?.object,
+                            "module": allData[index]?.module,
+                            "data_object_type": data_object,
+                            "transformation_complexity":transComplexcity,
+                            "load_complexity":loadComplexcity, 
+                            "source_complexity":sourceComplexcity,
+                            "scope": scope,
+                            "object_development": null,
+                            "iteration_1_data_loading":null ,
+                            "iteration_1_defects": null,
+                            "iteration_2_data_loading": null,
+                            "iteration_2_defects": null,
+                            "iteration_3_data_loading":null ,
+                            "iteration_3_defects": null,
+                            "production_data_loads": null,
+                            "total":0        
+                        };
+                        // now remove final data in allData and append this updated data to master data
+                        
+                        // console.log(finalData);
+                        // console.log("bhoooooom");
+                        // setAllData([]);
+                        // setTimeout(() => {
+                        //     const newData = allData.filter((obj) => obj.id !== finalData.id);
+                        //     // console.log(newData);
+                        //     setAllData(newData);
+                        //     const updatedMasterData = masterData.map(element => {
+                        //         if (element.id === finalData.id) {
+                        //             // Create a new object with the updated scope
+                        //             // return { ...element, scope: finalData.scope }
+                        //             return finalData;
+
+                        //         }
+                        //         return element; // Keep other elements unchanged
+                        //     });
+                            
+                        //     setMasterData(updatedMasterData);
+                        // }, 1);
+                        // setTimeout(() => {
+                            
+                        // }, 10);
+                        
+                        // now update in master data
+                        const newData = [...allData];
+                        newData[index] = finalData;
+                        // console.log(newData);
+                        // alert();
+                        // setMasterData(newData);
+                        // console.log(newData);                        
+                        setAllData(newData);
+                        const updatedMasterData = masterData.map(element => {
+                            if (element.id === finalData.id) {
+                                // Create a new object with the updated scope
+                                // return { ...element, scope: finalData.scope }
+                                return finalData;;
+
+                            }
+                            return element; // Keep other elements unchanged
+                        });
+                        
+                        setMasterData(updatedMasterData);
+                        
+                    }
+                } catch (error) {
+                    console.error("Error updating data:", error);
+                    // Handle error
+                } finally {
+                }    
+            } else {
+                const newData = [...allData];
+                newData[index][field] = value;
+
+                // setMasterData(newData);
+                setAllData(newData);
+                setLoading(false);
+            }
+        }else{
+
+            // console.log(index, field, value);        
+            setLoading(true);
+            const updatedRow = { ...allData[index], [field]: value };
+            const requiredFieldsFilled = checkRequiredFields(updatedRow);
+            if (requiredFieldsFilled) {
+                try {
+                    console.log(updatedRow);
+                    let transComplexcity = updatedRow?.transformation_complexity
+                    let loadComplexcity = updatedRow?.load_complexity
+                    let sourceComplexcity = updatedRow?.source_complexity
+                    let data_object = updatedRow?.data_object_type
+                    let scope = updatedRow?.scope;
+                    const updatedMasterData = allData.map((item, i) => {
+                        if (i === index) {
+                        return { ...item, scope: scope }; // FSearcha new object with the updated scope
+                        } else {
+                        return item; // Return the original object if not the one being updated
+                        }
+                    });
+                    // setMasterData(updatedMasterData);
+                    setAllData(updatedMasterData);
+                    // console.log(transComplexcity," ",loadComplexcity, " ", sourceComplexcity)
+                    // console.log('scope', scope);
+                    if(scope.toLowerCase() === "inscope"){
+                        // console.log('true');
+                    }else{
+                        // console.log('false');
+                    }
+                    // console.log(' update row');
+                    setLoading(false);
+                    // console.log(updatedRow); 
+                    if(scope.toLowerCase() === "inscope"){
+                        const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
+                        // console.log(allData[index])
+                        let finalData = {
+                            "id": allData[index]?.id,
+                            "object": allData[index]?.object,
+                            "module": allData[index]?.module,
+                            "data_object_type": data_object,
+                            "transformation_complexity": response?.data[0]?.transformation_complexity,
+                            "load_complexity": response?.data[0]?.load_complexity,
+                            "source_complexity": response?.data[0]?.source_complexity,
+                            "scope": scope,
+                            "object_development": response?.data[0]?.object_development,
+                            "iteration_1_data_loading": response?.data[0]?.iteration_1_data_loading,
+                            "iteration_1_defects": response?.data[0]?.iteration_1_defects,
+                            "iteration_2_data_loading": response?.data[0]?.iteration_2_data_loading,
+                            "iteration_2_defects": response?.data[0]?.iteration_2_defects,
+                            "iteration_3_data_loading": response?.data[0]?.iteration_3_data_loading,
+                            "iteration_3_defects": response?.data[0]?.iteration_3_defects,
+                            "production_data_loads": response?.data[0]?.production_data_loads,
+                            "total": response?.data[0]?.total
+                        };
+                        // console.log(' final master data');
+                        // console.log(finalData);
+                        const newData = [...allData];
+                        newData[index] = finalData;
+                        // console.log(newData);
+                        // alert();
+                        // setMasterData(newData);
+                        setAllData(newData);
+                        const updatedMasterData = masterData.map(element => {
+                            if (element.id === finalData.id) {
+                                // Create a new object with the updated scope
+                                // return { ...element, scope: finalData.scope }
+                                return finalData;;
+
+                            }
+                            return element; // Keep other elements unchanged
+                        });
+                        
+                        setMasterData(updatedMasterData);
+
+
+                    }else{
+                        // console.log(allData[index])
+                        let finalData = {
+                            "id": allData[index]?.id,
+                            "object": allData[index]?.object,
+                            "module": allData[index]?.module,
+                            "data_object_type": data_object,
+                            "transformation_complexity":transComplexcity,
+                            "load_complexity":loadComplexcity, 
+                            "source_complexity":sourceComplexcity,
+                            "scope": scope,
+                            "object_development": null,
+                            "iteration_1_data_loading":null ,
+                            "iteration_1_defects": null,
+                            "iteration_2_data_loading": null,
+                            "iteration_2_defects": null,
+                            "iteration_3_data_loading":null ,
+                            "iteration_3_defects": null,
+                            "production_data_loads": null,
+                            "total":0        
+                        };
+                        // console.log(' final master data');
+                        // console.log(finalData);
+                        const newData = [...masterData];
+                        newData[index] = finalData;
+                        // console.log(newData);
+                        // alert();
+                        setMasterData(newData);
+                        setAllData(newData);
+
+                    }
+                } catch (error) {
+                    console.error("Error updating data:", error);
+                    // Handle error
+                } finally {
+                }    
+            } else {
+                const newData = [...masterData];
+                newData[index][field] = value;
+                setMasterData(newData);
+                setAllData(newData);
+                setLoading(false);
+            }
         }
     };
+
 
     const checkRequiredFields = (row) => {
         const requiredFields = ['transformation_complexity', 'load_complexity', 'source_complexity', 'scope'];
@@ -450,37 +796,11 @@ const Tshirt = () => {
         }
         return true;
     };
-
     const smoothScroll = () => {
         const smoothScrollTo = document.querySelector('.review-form');
         smoothScrollTo.scrollIntoView({ behavior: 'smooth' });
       };
   
-
-    useEffect(() => {
-        // 
-        setSelectedProject(projectName);
-        try{
-            // alert();
-            setMasterData([]);
-            axios.get('http://127.0.0.1:8000/project_get/').then(res=>{
-                console.log('response recieved successfully');
-                console.log(res);
-                setProjects(res.data);          
-                console.log(projects);
-                
-            }).catch(err=>{
-                console.log(err);
-                
-            })
-        }catch(err){
-            console.log(err);
-            
-        };
-        handleProjectChange(projectName);
-
-    }, []);
-    
     const addRow = () => {
         // alert('hi');
         setTempMasterData(masterData)
@@ -505,8 +825,10 @@ const Tshirt = () => {
         } ,...masterData]
         console.log(updatedData)
         setMasterData([]);
+        setAllData([]);
         setTimeout(() => {
             setMasterData(updatedData);
+            setAllData(updatedData);
         }, 100);
         console.log(masterData);
         // smoothScroll()   
@@ -518,22 +840,27 @@ const Tshirt = () => {
         console.log(value);
         // alert();
         setMasterData([]);
+        setAllData([]);
         // getting prject specific data 
         try {
             // fetching project specific data
             axios.get(`http://127.0.0.1:8000/project_data_get/${value}`)
                 .then((res) => {
                 setMasterData([]);
+                setAllData([]);
                 setInscopeData([]);
                 setOutscopeData([]);
                 setSearchData([]);
                 let temp = res.data;
+                console.log(temp);
+                
                 let finalTemp = [];
                 temp.forEach(element => {
                     if(element?.scope.toLowerCase() === 'inscope'){
                         finalTemp.push(element);
                     }else{
                         let carry = {
+                            "id": element?.id,
                             "object": element?.object,
                             "module": element?.module,
                             "data_object_type": element?.data_object_type,
@@ -555,9 +882,9 @@ const Tshirt = () => {
                     }
                 });
                 console.log(finalTemp);
-                
                 setMasterData(finalTemp);
-                console.log(res);
+                setAllData(finalTemp);
+                // console.log(res);
                 })
                 .catch((err) => {
                     // fetching initial data
@@ -567,6 +894,7 @@ const Tshirt = () => {
                 axios.get(`http://127.0.0.1:8000/load_data/`).then((res) => {
                     setMasterData([]);
                     setMasterData(res.data);
+                    setAllData(res.data);
                     console.log(res);
                     }).catch(err=>{
                         console.log(err);
@@ -580,53 +908,59 @@ const Tshirt = () => {
     };
     const handleSearchChange = (e) => {
         setSearchText(e.target.value);
+        console.log(e.target.value);
+        if(e.target.value === ''){
+            if(inscopeBool === true){
+                const tempData = masterData.filter(ele=>{
+                    return ele?.scope.toLowerCase() === 'inscope'
+                })
+                console.log(tempData);
+                setAllData([]);
+                setTimeout(() => {
+                    setAllData(tempData);
+                }, 0);
+            }   
+        else if(outscopeBool === true){
+                const tempData = masterData.filter(ele=>{
+                    return ele?.scope.toLowerCase() === 'outscope'
+                })
+                console.log(tempData);
+                setAllData([]);
+                setTimeout(() => {
+                    setAllData(tempData);
+                }, 0);
+        }else{
+            setAllData(masterData);
+        }
+    }
         setSearchData([]);
     };
     const handleSearch = (e)=>{
         console.log('handel search');
-        let temp = []
-        if(inscopeData.length>0)
-        {
-            temp = inscopeData.filter((obj)=>{
-                return obj.object.toLowerCase().includes(searchText.toLowerCase())
-            })
-            console.log(searchText);
-            console.log(temp);
-        }
-        else if(outscopeData.length>0)
-        {
-            temp = outscopeData.filter((obj)=>{
-                return obj.object.toLowerCase().includes(searchText.toLowerCase())
-            })
-            console.log(searchText);
-            console.log(temp);
-        }
-        else
-        {
-            temp = masterData.filter((obj)=>{
-                return obj.object.toLowerCase().includes(searchText.toLowerCase())
-            })
-            console.log(searchText);
-            console.log(temp);
-        }
-        setSearchData(temp);
+        setAllData([]);
+        
+            setTimeout(() => {
+                // if(searchText.length === 0){
+                //     setTimeout(() => {
+                //         setAllData(masterData);
+                //     }, 0);
+                // }else{
+                    let temp = allData.filter((obj)=>{
+                    return obj.object.toLowerCase().includes(searchText.toLowerCase())
+                })
+                console.log(searchText);
+                console.log(temp);
+                setAllData(temp);
+            // }
+                // setLoading(false);
+            }, 1);
+           
+        // }
+        // setSearchData(temp);
     }
-
-
-
     const homeClick=()=>{
         navigate(`/`);
     }
-    useEffect(() => {
-        if (tableRef.current) {
-            tableRef.current.scrollTop = tableRef.current.scrollHeight; // Instant scroll
-            //OR
-            // tableRef.current.scrollIntoView({ behavior: 'smooth' }); // Smooth scroll
-        }
-    }, [masterData, searchData, inscopeData, outscopeData]); // Correct dependency array
-
-
-    
     return (
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <div style={{ marginBottom: '20px', display: 'inline',textAlign:'center'}}>
@@ -635,7 +969,7 @@ const Tshirt = () => {
                     style={{width: '100px', height: '50px', marginRight:'10px',cursor: 'pointer' }}
                     
                     onClick={()=>{
-                        navigate(`/`);
+                        navigate(`/home`);
                     }}
                     ></img>
                 </div>
@@ -659,9 +993,6 @@ const Tshirt = () => {
           <Option value={null}>No projects available</Option>
         )}
       </Select>
-
-      
- 
         <div>
         <HomeOutlined style={{ fontSize: '22px', marginRight: '10px' }} onClick={homeClick}/>
       <Button
@@ -722,19 +1053,12 @@ const Tshirt = () => {
 </div>
 
     </div>
-            <div style={{maxHeight: '490px' }} className= 'tableDiv'ref={tableRef}>
-            
-            {console.log(masterData)}
-            {searchData.length>0?<Table  className='review-form'  columns={columns} dataSource={searchData} pagination={false} loading={loading} style={{ tableLayout: 'fixed',height: "100%" }}  
-scroll={{ y: `calc(100vh - 250px)` }}/>:''}
-            {searchData.length===0 && inscopeData.length>0?<Table  className='review-form' columns={columns} dataSource={inscopeData} pagination={false} loading={loading} style={{ tableLayout: 'fixed',height: "100%" }}  
-scroll={{ y: `calc(100vh - 250px)` }}/>:''}
-            {searchData.length===0 && outscopeData.length>0?<Table  className='review-form' columns={columns} dataSource={outscopeData} pagination={false} loading={loading} style={{ tableLayout: 'fixed',height: "100%" }}  
-scroll={{ y: `calc(100vh - 250px)` }}/>:''}
-            {searchData.length===0 && inscopeData.length===0 && outscopeData.length===0 ? <Table className='review-form' columns={columns} dataSource={masterData} pagination={false} loading={loading} style={{ tableLayout: 'fixed',height: "100%",width:"700px",overflowX:"scroll" }} 
-scroll={{ y: `calc(100vh - 250px)` }} />:'' }
-
-            {/* <Table columns={columns} dataSource={searchData} pagination={false} loading={loading} />     */}
+            <div style={{maxHeight: '490px' }} className= 'tableDiv'ref={tableRef}>       
+                <Table 
+                    className='review-form' columns={columns} dataSource={allData} pagination={false} loading={loading} 
+                    style={{ tableLayout: 'fixed',height: "100%",width:"700px",overflowX:"scroll" }} 
+                    scroll={{ y: `calc(100vh - 250px)` }} 
+                />
             </div>
         </div>
     );

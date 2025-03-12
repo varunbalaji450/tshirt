@@ -9,6 +9,24 @@ import { CgEnter, CgProfile } from "react-icons/cg";
 import {useSelector} from 'react-redux';
 import { FaDownload } from "react-icons/fa6";
 
+// const ColorSwatch = ({ color, text }) => {
+//     return (
+//       <div style={{  display: 'flex', alignItems: 'center', marginRight: '20px' ,marginLeft: '20px'}}> {/* Adjust marginLeft as needed */}
+//         <div
+//           style={{
+//             width: '18px',
+//             height: '18px',
+//             backgroundColor: color,
+//             border: '1px solid #ccc', // Optional border
+//             marginRight: '10px',
+//             borderRadius: '50%'
+//           }}
+//           />
+//         <span style={{ fontWeight: 'bold', fontSize: '12px' }}>{text}</span>
+//       </div>
+//     );
+// };
+
 const ColorSwatch = ({ color, text }) => {
     return (
       <div style={{  display: 'flex', alignItems: 'center', marginRight: '20px' ,marginLeft: '20px'}}> {/* Adjust marginLeft as needed */}
@@ -26,14 +44,34 @@ const ColorSwatch = ({ color, text }) => {
       </div>
     );
 };
-
+ 
+const useStyle = createStyles(({ css, token }) => {
+    const { antCls } = token;
+    return {
+      customTable: css`
+        ${antCls}-table {
+          ${antCls}-table-container {
+            ${antCls}-table-body,
+            ${antCls}-table-content {
+              scrollbar-width: thin;
+              scrollbar-color: #eaeaea transparent;
+              scrollbar-gutter: stable;
+            }
+          }
+        }
+      `,
+    };
+});
+ 
 const ReportTshirt = () => {
+    const {styles} = useStyle();
     const navigate = useNavigate();
     const { projectName } = useParams();
     const { totalEfforts } = useParams();
     const [txt, setTxt] = useState('');
     const [realize, setRealize] = useState('');
     const [live, setLive] = useState('');
+    const [mock, setMock] = useState('');
     const [colorrealize, setColorRealize] = useState('');
     const [colorlive, setColorLive] = useState('');
     const [colCnt, setColCnt] = useState(0);
@@ -130,23 +168,23 @@ const ReportTshirt = () => {
         },500);        
     },[msgText])
  
-    const useStyle = createStyles(({ css, token }) => {
-        const { antCls } = token;
-        return {
-            customTable: css`
-                ${antCls}-table {
-                    ${antCls}-table-container {
-                        ${antCls}-table-body,
-                        ${antCls}-table-content {
-                            scrollbar-width: thin;
-                            scrollbar-color: #eaeaea transparent;
-                            scrollbar-gutter: stable;
-                        }
-                    }
-                }
-            `,
-        };
-    });
+    // const useStyle = createStyles(({ css, token }) => {
+    //     const { antCls } = token;
+    //     return {
+    //         customTable: css`
+    //             ${antCls}-table {
+    //                 ${antCls}-table-container {
+    //                     ${antCls}-table-body,
+    //                     ${antCls}-table-content {
+    //                         scrollbar-width: thin;
+    //                         scrollbar-color: #eaeaea transparent;
+    //                         scrollbar-gutter: stable;
+    //                     }
+    //                 }
+    //             }
+    //         `,
+    //     };
+    // });
 
  
     // const handleSelectChange = (index, field, value) => {
@@ -180,34 +218,6 @@ const ReportTshirt = () => {
             }
         });
     };
-
- 
-    // const handleInputChange = (e, record, dataIndex) => {
-    //     const newValue = e.target.value;
-   
-    //     setDataSource(prevDataSource => {
-    //         return prevDataSource.map(item => {
-    //             if (item.key === record.key) {
-    //                 const updatedItem = { ...item, [dataIndex]: newValue }; // Update the specific cell
-   
-    //                 // Recalculate Total_Days and Total_Hours
-    //                 let totalDays = 0;
-    //                 for (let i = 1; i <= colCnt; i++) {
-    //                   const weekValue = parseInt(updatedItem[`W${i}`], 10) || 0; // Parse or default to 0
-    //                   totalDays += weekValue;
-    //                 }
-   
-    //                 updatedItem.Total_Days = totalDays;
-    //                 updatedItem.Total_Hours = totalDays * 8; // Assuming 8 hours per day
-   
-    //                 return updatedItem;
-    //             }
-    //             return item;
-    //         });
-           
-    //     });
-    // };
- 
  
     const handleInputChange = (e, record, dataIndex) => {
         const newValue = e.target.value;
@@ -251,19 +261,19 @@ const ReportTshirt = () => {
         }
     };
  
-    const { styles } = useStyle();
+    // const { styles } = useStyle();
  
     const fixedColumns = [
         {
             title: 'YASH Consultants',
-            width: 100,
+            width: 290,
             dataIndex: 'Yash_Consultant',
             key: 'Yash_Consultant',
             fixed: 'left',
             render: (text, record, index) => (
                 <Select
                     defaultValue={text}
-                    style={{ width: 220 }}
+                    style={{ width: 265 }}
                     onChange={(value) => handleSelectChange(index, 'Yash_Consultant', value)} // Correct field name
                 >
                     <Select.Option value="Project Manager">Project Manager</Select.Option>
@@ -276,7 +286,7 @@ const ReportTshirt = () => {
         },
         {
             title: 'Role',
-            width: 100,
+            width: 150,
             dataIndex: 'Role',
             key: 'Role',
             fixed: 'left',
@@ -293,7 +303,7 @@ const ReportTshirt = () => {
         },
         {
             title: 'Location',
-            width: 100,
+            width: 150,
             dataIndex: 'Location',
             key: 'Location',
             fixed: 'left',
@@ -389,6 +399,13 @@ const ReportTshirt = () => {
             setLive(value);
         }
     };
+
+    const handleMockBox = (e) => {
+        const value = e.target.value;
+        if (/^\d*$/.test(value)) { // Allow only integers
+            setMock(value);
+        }
+    };
  
     const handelButtonSubmit = () => {
         let temp = [];
@@ -407,7 +424,8 @@ const ReportTshirt = () => {
             "project_name": projectName,
             "weeks": parseInt(txt, 10),
             "realize" : parseInt(realize, 10),
-            "live" : parseInt(live, 10)
+            "live" : parseInt(live, 10),
+            "iterations" : parseInt(mock,10)
         };
         axios.post(`http://127.0.0.1:8000/report_creation/`, val)
             .then(res => {
@@ -639,7 +657,7 @@ const ReportTshirt = () => {
                         padding: '8px',
                         border: '1px solid #ccc',
                         borderRadius: '4px',
-                        minWidth: '100px', // Or adjust as needed
+                        minWidth: '60px', // Or adjust as needed
                     }}
                 />
 
@@ -656,7 +674,7 @@ const ReportTshirt = () => {
                         padding: '8px',
                         border: '1px solid #ccc',
                         borderRadius: '4px',
-                        minWidth: '100px', // Or adjust as needed
+                        minWidth: '60px', // Or adjust as needed
                     }}
                     // disabled = 
                 />
@@ -674,49 +692,73 @@ const ReportTshirt = () => {
                         padding: '8px',
                         border: '1px solid #ccc',
                         borderRadius: '4px',
-                        minWidth: '100px', // Or adjust as needed
+                        minWidth: '60px', // Or adjust as needed
                     }}
                 />
 
-                <Button
-                    onClick={handelButtonSubmit}
-                    type="primary"
+                <label style={{ marginRight: '10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                    Mock Iterations:
+                </label>
+                <Input
+                    type="text"
+                    placeholder="Mock Iterations"
+                    value={mock}
+                    onChange={handleMockBox}
                     style={{
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        padding: '8px 16px',
-                        border: 'none',
+                        flexGrow: 1,
+                        padding: '8px',
+                        border: '1px solid #ccc',
                         borderRadius: '4px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
+                        minWidth: '60px', // Or adjust as needed
                     }}
-                >
-                    Submit
-                </Button>
+                />
+                </div>
+                <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      marginTop: '20px', 
+      marginBottom: '20px'}} >
+                    <Button
+                        onClick={handelButtonSubmit}
+                        type="primary"
+                        style={{
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            padding: '8px 16px',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            marginRight: '10px',
+                        }}
+                    >
+                        Submit
+                    </Button>
 
-                <Button
-                    onClick={handleExcel}
-                    type="primary"
-                    style={{
-                        // backgroundColor: '#4CAF50',
-                        color: 'white',
-                        padding: '8px 16px',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        whiteSpace: 'nowrap',
-                        ':hover': {
-                            backgroundColor: '#45a049',
-                            content : 'Hii' // Example hover color
-                          }
-                        
-                    }}
-                >
-                    <FaDownload />
-                    {/* Export to Excel */}
-                    {/* <TbFileExport /> */}
-                </Button>
-            </div>
+                    <Button
+                        onClick={handleExcel}
+                        type="primary"
+                        style={{
+                            // backgroundColor: '#4CAF50',
+                            color: 'white',
+                            padding: '8px 16px',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            ':hover': {
+                                backgroundColor: '#45a049',
+                                content : 'Hii' // Example hover color
+                            }
+                            
+                        }}
+                    >
+                        <FaDownload />
+                        {/* Export to Excel */}
+                        {/* <TbFileExport /> */}
+                    </Button>
+                </div>
             {error && <p style={{ color: 'red' }}>{error}</p>}
 
 
@@ -725,8 +767,11 @@ const ReportTshirt = () => {
                 pagination={false}
                 columns={columns}
                 dataSource={dataSource}
-                scroll={{ x: 'max-content' }}
                 style={{ width: '100%' }}
+                scroll={{
+                    x: 2000,
+                    y: 264,
+                }}
             />
  
             {/* <div style={{display: 'flex', justifyContent: 'space-between'}}>
