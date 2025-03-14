@@ -5,8 +5,9 @@ import { useParams } from 'react-router-dom';
 import { SearchOutlined, HomeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { AiFillDownSquare } from 'react-icons/ai';
+import debounce from 'lodash/debounce';
 const { Option } = Select;
-
+ 
 const Tshirt = () => {
     const navigate = useNavigate();
     const [masterData, setMasterData] = useState([]);
@@ -17,10 +18,10 @@ const Tshirt = () => {
     const [selectedProject, setSelectedProject] = useState();
     const [inscopeData, setInscopeData] = useState([]);
     const [inscopeBool, setInscopeBool] = useState(false);
-
+ 
     const [outscopeData, setOutscopeData] = useState([]);
     const [outscopeBool, setOutscopeBool] = useState(false);
-
+ 
     const { projectName } = useParams();
     const [searchText, setSearchText] = useState('');
     const [searchData, setSearchData] = useState([]);
@@ -35,7 +36,7 @@ const Tshirt = () => {
                 console.log(res);
                 setProjects(res.data);          
                 console.log(projects);
-                
+               
             }).catch(err=>{
                 console.log(err);                
             })
@@ -51,7 +52,7 @@ const Tshirt = () => {
             // tableRef.current.scrollIntoView({ behavior: 'smooth' }); // Smooth scroll
         }
     }, [masterData, searchData, inscopeData, outscopeData]); // Correct dependency array
-
+ 
     const handelInscopeData = ()=>{
         if(inscopeBool){
             setInscopeBool(false);
@@ -76,8 +77,8 @@ const Tshirt = () => {
                 setInscopeBool(true);
             }, 10);
         }
-        
-        
+       
+       
     }
     const handelOutscopeData = ()=>{
         if(outscopeBool){
@@ -87,7 +88,7 @@ const Tshirt = () => {
             setTimeout(() => {
                 setAllData(masterData);
             }, 0);
-            
+           
             return;
         }
         setInscopeBool(false);
@@ -202,7 +203,7 @@ const Tshirt = () => {
             ),
         },
         {
-            title: 
+            title:
                 <>
                 <Button style={{
                     marginRight: '8px', // Note the camelCase
@@ -213,7 +214,7 @@ const Tshirt = () => {
                 }}
                 onClick={handelInscopeData}
                 >Inscope</Button>
-                <Button 
+                <Button
                 style={{
                     marginRight: '8px', // Note the camelCase
                     padding: 0,
@@ -239,7 +240,7 @@ const Tshirt = () => {
                 </Select>
             ),
         },
-
+ 
         {
             title: 'Object Development',
             dataIndex: 'object_development',
@@ -299,7 +300,7 @@ const Tshirt = () => {
     const handelSaveTable = ()=>{
         // saving project int db
         console.log(selectedProject);
-        
+       
         console.log(masterData);
         try{
           axios.post(`http://127.0.0.1:8000/project_data_save/${selectedProject}`,masterData).then((res)=>{
@@ -312,29 +313,29 @@ const Tshirt = () => {
             console.log(err);
         }
         message.success('Saved successfully!', 1);
-
+ 
         setTimeout(() => {
             navigate(`/`);
         }, 1500);
-        
+       
     };
      // NO CHANGE
     const handleExcel = async () => {
         try {
-            // const saveResponse = await axios.post(`http://127.0.0.1:8000/temp_save/`, 
+            // const saveResponse = await axios.post(`http://127.0.0.1:8000/temp_save/`,
             // inscopeData.length>0?inscopeData:outscopeData.length>0 ? outscopeData:masterData);
             // console.log('Temp saved Successfully');
             // console.log(saveResponse.data);
-    
-            const downloadResponse = await axios.post(`http://127.0.0.1:8000/sqllite3_to_excel/`, 
-                allData, 
+   
+            const downloadResponse = await axios.post(`http://127.0.0.1:8000/sqllite3_to_excel/`,
+                allData,
             {
                 responseType: 'blob', // C rucial: Get response as a blob
             });
-    
+   
             console.log('Excel downloaded Successfully');
             console.log(downloadResponse);
-    
+   
             const blob = new Blob([downloadResponse.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -344,10 +345,10 @@ const Tshirt = () => {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url); // Release the blob URL (important!)
-    
+   
         } catch (error) {
             console.error("Error:", error);
-    
+   
             if (error.response) {
                 console.error("Response data:", error.response.data);
                 console.error("Response status:", error.response.status);
@@ -360,16 +361,70 @@ const Tshirt = () => {
         }
     };
     const handleInputChange = (index, field, value) => {
-        const newData = [...masterData];
-        newData[index][field] = value;
-        // alert();
-        setMasterData(newData);
-        setAllData(newData);
+        console.log("changed here ");
+        console.log(index, field, value);
+        let searchTemp = allData[index];
+            searchTemp[field] = value;
+            console.log(searchTemp);
+            const actData = masterData.filter(ele=>{
+                if(ele.id === searchTemp.id){
+                    return searchTemp
+                }else{
+                    return ele
+                }
+            });
+            const actData1 = allData.filter(ele=>{
+                if(ele.id === searchTemp.id){
+                    return searchTemp
+                }else{
+                    return ele
+                }
+            });
+            console.log(actData);
+            console.log(actData1);
+            setMasterData(actData);
+            setAllData(actData1);
+        //     setMasterData([]);
+        //     setAllData([]);
+        // setTimeout(() => {
+        //     setMasterData(actData);
+        //     setAllData(actData1);
+ 
+        // }, 10);
+                // console.log(actData);                
+        // const newData = [...masterData];
+        // newData[index][field] = value;
+        // // alert();
+        // setMasterData(newData);
+        // setAllData(newData);
     };
-    const handleScopeChange = (index, scope) => {
-        console.log(scope);
-    };
+    // const handleInputChange = (index, field, value) => {
+    //     console.log("changed here", index, field, value);
+   
+    //     // 1. Update allData
+    //     setAllData(prevAllData => {
+    //         const updatedAllData = prevAllData.map((item, i) => {
+    //             if (i === index) {
+    //                 return { ...item, [field]: value };
+    //             }
+    //             return item;
+    //         });
+    //         console.log("Updated allData:", updatedAllData);
+    //         return updatedAllData;
+    //     });
+   
+    //     // 2. Update masterData (assuming it's related by id)
+    //     setMasterData(prevMasterData => {
+    //         return prevMasterData.map(item => {
+    //             if (item.id === allData[index].id) {
+    //                 return { ...item, [field]: value };
+    //             }
+    //             return item;
+    //         });
+    //     });
+    // };
     const handleSelectChange = async (index, field, value) => {
+        console.log("changed here ");
         if(inscopeBool === true){
             // console.log("inscope");
             // console.log(allData);
@@ -394,7 +449,7 @@ const Tshirt = () => {
                         }
                     });
                     // console.log(updatedMasterData);
-                    
+                   
                     setAllData(updatedMasterData);
                     if(scope.toLowerCase() === "inscope"){
                         // console.log('true');
@@ -405,7 +460,7 @@ const Tshirt = () => {
                     setLoading(false);
                     if(scope.toLowerCase() === "inscope"){
                         console.log(allData);
-                        
+                       
                         const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
                         let finalData = {
                             "id": allData[index]?.id,
@@ -437,7 +492,7 @@ const Tshirt = () => {
                         setAllData(newData);
                     }else{
                         console.log(allData);
-
+ 
                         // console.log("out scope line 432");
                         // console.log(allData[index])
                         let finalData = {
@@ -446,7 +501,7 @@ const Tshirt = () => {
                             "module": allData[index]?.module,
                             "data_object_type": data_object,
                             "transformation_complexity":transComplexcity,
-                            "load_complexity":loadComplexcity, 
+                            "load_complexity":loadComplexcity,
                             "source_complexity":sourceComplexcity,
                             "scope": scope,
                             "object_development": null,
@@ -460,7 +515,7 @@ const Tshirt = () => {
                             "total":0        
                         };
                         // now remove final data in allData and append this updated data to master data
-                        
+                       
                         // console.log(finalData);
                         // console.log("bhoooooom");
                         setAllData([]);
@@ -473,19 +528,19 @@ const Tshirt = () => {
                                     // Create a new object with the updated scope
                                     // return { ...element, scope: finalData.scope }
                                     return finalData;;
-
+ 
                                 }
                                 return element; // Keep other elements unchanged
                             });
-                            
+                           
                             setMasterData(updatedMasterData);
                         }, 1);
                         // setTimeout(() => {
-                            
+                           
                         // }, 10);
-                        
+                       
                         // now update in master data
-                        
+                       
                     }
                 } catch (error) {
                     console.error("Error updating data:", error);
@@ -495,7 +550,7 @@ const Tshirt = () => {
             } else {
                 const newData = [...allData];
                 newData[index][field] = value;
-
+ 
                 // setMasterData(newData);
                 setAllData(newData);
                 setLoading(false);
@@ -521,7 +576,7 @@ const Tshirt = () => {
                         }
                     });
                     console.log(updatedMasterData);
-                    
+                   
                     setAllData(updatedMasterData);
                     // ---------------------------------------------------------------------------------------
                     if(scope.toLowerCase() === "inscope"){
@@ -533,7 +588,7 @@ const Tshirt = () => {
                     setLoading(false);
                     if(scope.toLowerCase() === "inscope"){
                         console.log(allData);
-                        
+                       
                         const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
                         let finalData = {
                             "id": allData[index]?.id,
@@ -566,7 +621,7 @@ const Tshirt = () => {
                         console.log(
                             "nulled alldata"
                         );
-                        
+                       
                         setTimeout(() => {
                             const newData = allData.filter((obj) => obj.id !== finalData.id);
                             console.log(newData);
@@ -576,11 +631,11 @@ const Tshirt = () => {
                                     // Create a new object with the updated scope
                                     // return { ...element, scope: finalData.scope }
                                     return finalData;;
-
+ 
                                 }
                                 return element; // Keep other elements unchanged
                             });
-                            
+                           
                             setMasterData(updatedMasterData);
                         }, 1);
                     }else{
@@ -592,7 +647,7 @@ const Tshirt = () => {
                             "module": allData[index]?.module,
                             "data_object_type": data_object,
                             "transformation_complexity":transComplexcity,
-                            "load_complexity":loadComplexcity, 
+                            "load_complexity":loadComplexcity,
                             "source_complexity":sourceComplexcity,
                             "scope": scope,
                             "object_development": null,
@@ -606,7 +661,7 @@ const Tshirt = () => {
                             "total":0        
                         };
                         // now remove final data in allData and append this updated data to master data
-                        
+                       
                         // console.log(finalData);
                         // console.log("bhoooooom");
                         // setAllData([]);
@@ -619,17 +674,17 @@ const Tshirt = () => {
                         //             // Create a new object with the updated scope
                         //             // return { ...element, scope: finalData.scope }
                         //             return finalData;
-
+ 
                         //         }
                         //         return element; // Keep other elements unchanged
                         //     });
-                            
+                           
                         //     setMasterData(updatedMasterData);
                         // }, 1);
                         // setTimeout(() => {
-                            
+                           
                         // }, 10);
-                        
+                       
                         // now update in master data
                         const newData = [...allData];
                         newData[index] = finalData;
@@ -643,13 +698,13 @@ const Tshirt = () => {
                                 // Create a new object with the updated scope
                                 // return { ...element, scope: finalData.scope }
                                 return finalData;;
-
+ 
                             }
                             return element; // Keep other elements unchanged
                         });
-                        
+                       
                         setMasterData(updatedMasterData);
-                        
+                       
                     }
                 } catch (error) {
                     console.error("Error updating data:", error);
@@ -659,14 +714,12 @@ const Tshirt = () => {
             } else {
                 const newData = [...allData];
                 newData[index][field] = value;
-
+ 
                 // setMasterData(newData);
                 setAllData(newData);
                 setLoading(false);
             }
-        }else{
-
-            // console.log(index, field, value);        
+        }else{    
             setLoading(true);
             const updatedRow = { ...allData[index], [field]: value };
             const requiredFieldsFilled = checkRequiredFields(updatedRow);
@@ -686,7 +739,7 @@ const Tshirt = () => {
                         }
                     });
                     // setMasterData(updatedMasterData);
-                    setAllData(updatedMasterData);
+                    // -----------------------------------setAllData(updatedMasterData);
                     // console.log(transComplexcity," ",loadComplexcity, " ", sourceComplexcity)
                     // console.log('scope', scope);
                     if(scope.toLowerCase() === "inscope"){
@@ -696,7 +749,7 @@ const Tshirt = () => {
                     }
                     // console.log(' update row');
                     setLoading(false);
-                    // console.log(updatedRow); 
+                    // console.log(updatedRow);
                     if(scope.toLowerCase() === "inscope"){
                         const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
                         // console.log(allData[index])
@@ -732,14 +785,14 @@ const Tshirt = () => {
                                 // Create a new object with the updated scope
                                 // return { ...element, scope: finalData.scope }
                                 return finalData;;
-
+ 
                             }
                             return element; // Keep other elements unchanged
                         });
-                        
+                       
                         setMasterData(updatedMasterData);
-
-
+ 
+ 
                     }else{
                         // console.log(allData[index])
                         let finalData = {
@@ -748,7 +801,7 @@ const Tshirt = () => {
                             "module": allData[index]?.module,
                             "data_object_type": data_object,
                             "transformation_complexity":transComplexcity,
-                            "load_complexity":loadComplexcity, 
+                            "load_complexity":loadComplexcity,
                             "source_complexity":sourceComplexcity,
                             "scope": scope,
                             "object_development": null,
@@ -769,7 +822,7 @@ const Tshirt = () => {
                         // alert();
                         setMasterData(newData);
                         setAllData(newData);
-
+ 
                     }
                 } catch (error) {
                     console.error("Error updating data:", error);
@@ -785,8 +838,9 @@ const Tshirt = () => {
             }
         }
     };
-
-
+ 
+ 
+ 
     const checkRequiredFields = (row) => {
         const requiredFields = ['transformation_complexity', 'load_complexity', 'source_complexity', 'scope'];
         for (const field of requiredFields) {
@@ -796,15 +850,11 @@ const Tshirt = () => {
         }
         return true;
     };
-    const smoothScroll = () => {
-        const smoothScrollTo = document.querySelector('.review-form');
-        smoothScrollTo.scrollIntoView({ behavior: 'smooth' });
-      };
-  
+ 
     const addRow = () => {
         // alert('hi');
         setTempMasterData(masterData)
-
+ 
         let updatedData = [{
             "object": "",
             "module": "",
@@ -831,17 +881,18 @@ const Tshirt = () => {
             setAllData(updatedData);
         }, 100);
         console.log(masterData);
-        // smoothScroll()   
-        
+        // smoothScroll()  
+       
     };
-    
+   
     const handleProjectChange = (value) => {
+        console.log("changed here ");
         setSelectedProject(value);
         console.log(value);
         // alert();
         setMasterData([]);
         setAllData([]);
-        // getting prject specific data 
+        // getting prject specific data
         try {
             // fetching project specific data
             axios.get(`http://127.0.0.1:8000/project_data_get/${value}`)
@@ -853,7 +904,7 @@ const Tshirt = () => {
                 setSearchData([]);
                 let temp = res.data;
                 console.log(temp);
-                
+               
                 let finalTemp = [];
                 temp.forEach(element => {
                     if(element?.scope.toLowerCase() === 'inscope'){
@@ -888,9 +939,9 @@ const Tshirt = () => {
                 })
                 .catch((err) => {
                     // fetching initial data
-                console.error('Error fetching data:', err);    //delete error} 
+                console.error('Error fetching data:', err);    //delete error}
                 setMasterData([]);
-                
+               
                 axios.get(`http://127.0.0.1:8000/load_data/`).then((res) => {
                     setMasterData([]);
                     setMasterData(res.data);
@@ -898,17 +949,18 @@ const Tshirt = () => {
                     console.log(res);
                     }).catch(err=>{
                         console.log(err);
-                        
+                       
                     })
                 });
             } catch (err) {
                 console.error('Error in useEffect:', err);
-            }   
-        
+            }  
+       
     };
     const handleSearchChange = (e) => {
+        console.log("changed here 930");
         setSearchText(e.target.value);
-        console.log(e.target.value);
+        console.log(e.target.value, " 932");
         if(e.target.value === ''){
             if(inscopeBool === true){
                 const tempData = masterData.filter(ele=>{
@@ -919,8 +971,8 @@ const Tshirt = () => {
                 setTimeout(() => {
                     setAllData(tempData);
                 }, 0);
-            }   
-        else if(outscopeBool === true){
+            }  
+            else if(outscopeBool === true){
                 const tempData = masterData.filter(ele=>{
                     return ele?.scope.toLowerCase() === 'outscope'
                 })
@@ -929,31 +981,27 @@ const Tshirt = () => {
                 setTimeout(() => {
                     setAllData(tempData);
                 }, 0);
-        }else{
-            setAllData(masterData);
-        }
+            }else{
+                setAllData([]);
+                setTimeout(() => {
+                    setAllData(masterData);
+                }, 0);
+            }
     }
-        setSearchData([]);
+        // setSearchData([]);
     };
     const handleSearch = (e)=>{
+        console.log("changed here ");
         console.log('handel search');
-        setAllData([]);
-        
+        setAllData([]);        
             setTimeout(() => {
-                // if(searchText.length === 0){
-                //     setTimeout(() => {
-                //         setAllData(masterData);
-                //     }, 0);
-                // }else{
                     let temp = allData.filter((obj)=>{
                     return obj.object.toLowerCase().includes(searchText.toLowerCase())
                 })
                 console.log(searchText);
                 console.log(temp);
                 setAllData(temp);
-            // }
-                // setLoading(false);
-            }, 1);
+            }, 0);
            
         // }
         // setSearchData(temp);
@@ -967,13 +1015,12 @@ const Tshirt = () => {
                 <div style={{ position: 'absolute', left: '25px',alignContent:'center', marginTop:'6px'  }}>                
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz6s3WZNZAaKEXsBVRXuMDagabISvp0gqDRw&s"
                     style={{width: '100px', height: '50px', marginRight:'10px',cursor: 'pointer' }}
-                    
                     onClick={()=>{
                         navigate(`/home`);
                     }}
                     ></img>
                 </div>
-
+ 
                 <h1>Data Migration - Effort and Estimation Report</h1>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' , justifyContent : 'space-between'}}> {/* Flexbox for alignment */}
@@ -1001,14 +1048,14 @@ const Tshirt = () => {
       >
         Add object
       </Button>
-
+ 
       <Button
         style={{ backgroundColor: 'blue', color: 'white', marginRight: '10px', marginBottom: '10px'  }}
         onClick={handelSaveTable}
       >
         Save Effort
       </Button>
-
+ 
       <Button
         style={{ backgroundColor: 'blue', color: 'white', marginRight: '10px', marginBottom: '10px'  }}
         onClick={handleExcel}
@@ -1017,7 +1064,7 @@ const Tshirt = () => {
       </Button>
  
       </div>
-
+ 
       <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '25px', marginBottom: '10px', overflow: 'hidden' }}>
     <Input
         type="text"
@@ -1051,19 +1098,18 @@ const Tshirt = () => {
         <SearchOutlined style={{ fontSize: '18px' }} />
     </button>
 </div>
-
+ 
     </div>
-            <div style={{maxHeight: '490px' }} className= 'tableDiv'ref={tableRef}>       
-                <Table 
-                    className='review-form' columns={columns} dataSource={allData} pagination={false} loading={loading} 
-                    style={{ tableLayout: 'fixed',height: "100%",width:"700px",overflowX:"scroll" }} 
-                    scroll={{ y: `calc(100vh - 250px)` }} 
+            <div style={{maxHeight: '490px' }} className= 'tableDiv'ref={tableRef}>      
+                <Table
+                    className='review-form' columns={columns} dataSource={allData} pagination={false} loading={loading}
+                    style={{ tableLayout: 'fixed',height: "100%",width:"700px",overflowX:"scroll" }}
+                    scroll={{ y: `calc(100vh - 250px)` }}
                 />
             </div>
         </div>
     );
-
-
 };
-
+ 
 export default Tshirt;
+ 

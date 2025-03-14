@@ -80,10 +80,10 @@ def demo(request):
                 "load_complexity" :i.iloc[4],
                 "source_complexity" :i.iloc[5],
                 "scope" :"Inscope",
+                "object_development":i.iloc[7],
                 "transformation_complexity":value.transformation_complexity,
                 "load_complexity" : value.load_complexity,
                 "source_complexity":value.source_complexity,
-                "object_development":value.object_development,
                 "iteration_1_data_loading":value.iteration_1_data_loading,
                 "iteration_1_defects":value.iteration_1_defects,
                 "iteration_2_data_loading":value.iteration_2_data_loading,
@@ -753,6 +753,7 @@ def report_creation(request):
         prj.table_name = table_name
         prj.realize = realize
         prj.live = live
+        prj.iterations = iterations
         prj.save()
         report_insert(pname,weeks,realize,live,iterations)
 
@@ -819,43 +820,44 @@ def report_insert(pname,weeks,realize,live,iterations):
             # total_effort = prj.total_efforts
             print("Total Efforts are :",total_effort)
             resources = total_effort/(weeks*5)
+            print("Total resources are :",resources%1)
 
-            if resources % 1 > 0.6:  
+            f=0
+
+            if resources % 1 <= 0.3: 
+                resources = math.floor(resources) 
+            elif resources % 1 > 0.3 and resources % 1  <= 0.6:  
+                f=1
                 resources = math.ceil(resources) 
             else:
-                resources =  math.floor(resources)  
-            resources = resources + 1
+                resources =  math.ceil(resources)  
+            # resources = resources + 1
+            print("Total Number of Resources are : ",resources)
             insert_data = []
 
             temp_consultants = []
             if 1 <= resources <= 4:
+                temp_consultants.append("Project Manager")
                 for i in range(resources):
-
                     if i == 0 :
-                        temp_consultants.append("Project Manager")
-                    elif i == 1:
                         temp_consultants.append("Lead - Data Migration Consultant")
-                    # elif i == 1:
-                    #     temp_consultants.append("Sr Data Migration Consultant")
                     else:
                         temp_consultants.append("Data Migration Consultant")
             elif 4 <= resources <= 6:
+                temp_consultants.append("Project Manager")
                 for i in range(resources):
                     if i == 0:
-                        temp_consultants.append("Project Manager")
-                    elif i == 1:
                         temp_consultants.append("Lead - Data Migration Consultant")
-                    elif i == 2 or i == 3:
+                    elif i == 1 or i == 2:
                         temp_consultants.append("Sr Data Migration Consultant")
                     else:
                         temp_consultants.append("Data Migration Consultant")
             elif resources > 6:
+                temp_consultants.append("Project Manager")
                 for i in range(resources):
                     if i == 0:
-                        temp_consultants.append("Project Manager")
-                    elif i == 1:
                         temp_consultants.append("Lead - Data Migration Consultant")
-                    elif i == 2 or i == 3:
+                    elif i == 1 or i == 2:
                         temp_consultants.append("Sr Data Migration Consultant")
                     else:
                         temp_consultants.append("Data Migration Consultant")
@@ -864,6 +866,8 @@ def report_insert(pname,weeks,realize,live,iterations):
 
             g_t_d = 0
             g_t_h = 0
+            if resources!=0:
+                resources = resources + 1
             for r in range(resources):
                 data = {
                         "Yash_Consultant": temp_consultants[r],  # Example values
@@ -877,8 +881,13 @@ def report_insert(pname,weeks,realize,live,iterations):
                 t_d = 0
                 t_h = 0
                 for i in range(weeks):
+                    if f == 1 and r == (resources-1):
+                        w = f"W{i + 1}"  # Use f-string for cleaner formatting
+                        data[w] = 2.5  # Or any other default value for the weeks
+                        t_d += data[w]
+                        t_h = t_d * 8
 
-                    if data["Yash_Consultant"] == "Project Manager":
+                    elif data["Yash_Consultant"] == "Project Manager":
                             w = f"W{i + 1}"  # Use f-string for cleaner formatting
                             data[w] = 2.5  # Or any other default value for the weeks
                             t_d += data[w]
@@ -893,16 +902,17 @@ def report_insert(pname,weeks,realize,live,iterations):
                         if (i+1) < realize or (i+1) > live:
                             w = f"W{i + 1}"  # Use f-string for cleaner formatting
                             data[w] = 0  # Or any other default value for the weeks
-                            # t_d += data[w]
-                            # t_h = t_d * 8
+                            t_d += data[w]
+                            t_h = t_d * 8
                         else:
                             w = f"W{i + 1}"  # Use f-string for cleaner formatting
                             data[w] = 5  # Or any other default value for the weeks
                             t_d += data[w]
                             t_h = t_d * 8
                     # w_columns.append(w)
-                g_t_d += t_d
-                g_t_h += t_h
+                if data["Yash_Consultant"] != "Project Manager":   
+                    g_t_d += t_d
+                    g_t_h += t_h
                 data['Total_Days'] = t_d
                 data['Total_Hours'] = t_h
                 insert_data.append(data)
@@ -939,6 +949,7 @@ def report_get(request,pname):
     print("called Report get")
     realize = 0 
     live = 0
+    iterations = 0
     prj = projects.objects.filter(project_name=pname)
     if prj:
         prj = projects.objects.get(project_name=pname)
@@ -946,6 +957,7 @@ def report_get(request,pname):
             table_name = prj.table_name
             realize = prj.realize
             live = prj.live
+            iterations = prj.iterations
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
     else:
@@ -962,8 +974,10 @@ def report_get(request,pname):
             rows = cursor.fetchall()
             table_data = [dict(zip(columns, row)) for row in rows] #convert rows into list of dictionaries with column names as keys
 
+        table_data.append({"iterations": iterations})  
         table_data.append({"realize": realize})  # Dictionary with string key and integer value
         table_data.append({"live": live})  
+
         return JsonResponse(table_data, safe=False)
 
     except Exception as e:

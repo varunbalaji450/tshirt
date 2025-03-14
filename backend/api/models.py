@@ -48,6 +48,8 @@ class projects(models.Model):
     table_name = models.CharField(max_length=255,null=True,blank=True)
     realize = models.IntegerField(null=True,blank=True)
     live = models.IntegerField(null=True,blank=True)
+    iterations = models.IntegerField(null=True,blank=True)
+    
     
     
 

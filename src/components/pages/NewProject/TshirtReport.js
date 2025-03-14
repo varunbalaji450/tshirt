@@ -9,24 +9,6 @@ import { CgEnter, CgProfile } from "react-icons/cg";
 import {useSelector} from 'react-redux';
 import { FaDownload } from "react-icons/fa6";
 
-// const ColorSwatch = ({ color, text }) => {
-//     return (
-//       <div style={{  display: 'flex', alignItems: 'center', marginRight: '20px' ,marginLeft: '20px'}}> {/* Adjust marginLeft as needed */}
-//         <div
-//           style={{
-//             width: '18px',
-//             height: '18px',
-//             backgroundColor: color,
-//             border: '1px solid #ccc', // Optional border
-//             marginRight: '10px',
-//             borderRadius: '50%'
-//           }}
-//           />
-//         <span style={{ fontWeight: 'bold', fontSize: '12px' }}>{text}</span>
-//       </div>
-//     );
-// };
-
 const ColorSwatch = ({ color, text }) => {
     return (
       <div style={{  display: 'flex', alignItems: 'center', marginRight: '20px' ,marginLeft: '20px'}}> {/* Adjust marginLeft as needed */}
@@ -130,13 +112,14 @@ const ReportTshirt = () => {
                 if (res.data && res.data.length > 0) {
                     temp = res.data;
                     console.log(res);
-                    const lastRow = res.data[res.data.length - 3]; // Get the last row (totals)
-                    const dataWithoutTotals = res.data.slice(0, res.data.length - 3); // Remove last row
+                    const lastRow = res.data[res.data.length - 4]; // Get the last row (totals)
+                    const dataWithoutTotals = res.data.slice(0, res.data.length - 4); // Remove last row
                     const objLength = Object.keys(res.data[0]).length - 5;
                     setColCnt(objLength);
                     setTxt(objLength);
                     setRealize(res.data[res.data.length - 2].realize);
                     setLive(res.data[res.data.length - 1].live);
+                    setMock(res.data[res.data.length - 3].iterations);
                     setColorRealize(res.data[res.data.length - 2].realize);
                     setColorLive(res.data[res.data.length - 1].live);
                     
@@ -266,7 +249,7 @@ const ReportTshirt = () => {
     const fixedColumns = [
         {
             title: 'YASH Consultants',
-            width: 290,
+            width: 280,
             dataIndex: 'Yash_Consultant',
             key: 'Yash_Consultant',
             fixed: 'left',
@@ -286,7 +269,7 @@ const ReportTshirt = () => {
         },
         {
             title: 'Role',
-            width: 150,
+            width: 140,
             dataIndex: 'Role',
             key: 'Role',
             fixed: 'left',
@@ -331,19 +314,24 @@ const ReportTshirt = () => {
             dataIndex: `W${i}`,
             key: `W${i}`,
             render: (text, record) => {
-                let inputStyle = { width: "60px" }; // Default style with width
-
+                let dynamicWidth = Math.max(45, Math.floor(100 / colCnt)); // Calculate width without 'px'
+ 
+                // Adjust width if colCnt is 1
+                if (colCnt === 1) {
+                    dynamicWidth = 450; // or any other appropriate width for a single column
+                }
+ 
+                let inputStyle = { width: `${dynamicWidth}px` }; // Apply 'px' here
                 if (isFirstThree) {
-                    inputStyle = { ...inputStyle, backgroundColor: 'lightyellow' }; // Add background color
+                    inputStyle = { ...inputStyle, backgroundColor: 'lightyellow' };
                 }
-                
-                if(isLastThree){
-                    inputStyle = { ...inputStyle, backgroundColor: 'lightgreen' }; // Add background color
+   
+                if (isLastThree) {
+                    inputStyle = { ...inputStyle, backgroundColor: 'lightgreen' };
                 }
-
-                // Check for specific values and set color to green
+   
                 if (i === live) {
-                    inputStyle = { ...inputStyle, backgroundColor: 'green' ,color :'white' }; // Override with green
+                    inputStyle = { ...inputStyle, backgroundColor: 'green', color: 'white' };
                 }
                 return (
                     <Input
@@ -412,12 +400,37 @@ const ReportTshirt = () => {
         console.log(txt);
         console.log(realize);
         console.log(live);
+        console.log(mock);
 
-        setError(''); // Clear any previous errors
+        if (!txt || !realize || !live || !mock) {
+            // setError('All fields are required.'); // Set error messag
 
-        if (!txt || !realize || !live) {
-            setError('All fields are required.'); // Set error message
+            message.warning('Please Fill all the Fields!', 1);
             return; // Stop submission
+        }
+        else
+        {
+            console.log(mock)
+            if(txt<0)
+            {
+                message.warning('Project TimeLine cannot be negative', 2);
+                return;
+            }
+            else if(realize<0 || realize>txt)
+            {
+                message.warning('Enter a valid Realization week', 2);
+                return;
+            }
+            else if(live<0 || live>txt || live < realize)
+            {  
+                message.warning('Enter a valid Go Live week', 2);
+                return;
+            }
+            else if(mock>3 || mock<0)
+            {
+                message.warning('Value of Mock Iterations Must be Less than 3 and Greater than 0', 2);
+                return;
+            }
         }
 
         let val = {
@@ -709,7 +722,7 @@ const ReportTshirt = () => {
                         padding: '8px',
                         border: '1px solid #ccc',
                         borderRadius: '4px',
-                        minWidth: '60px', // Or adjust as needed
+                        minWidth: '40px', // Or adjust as needed
                     }}
                 />
                 </div>
