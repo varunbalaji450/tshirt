@@ -22,6 +22,9 @@ urlpatterns = [
 
    path('project_data_save/<str:pname>',views.project_data_save,name="project_data_save"),
    path('project_data_get/<str:pname>',views.project_data_get,name="project_data_get"),
+   path('project_data_delete/<str:pname>',views.project_data_delete,name="project_data_delete"),
+
+
    path('calc_total_time/<str:pname>',views.calc_total_time,name="calc_total_time"),
    path('report_creation/',views.report_creation,name="report_creation"),
    path('report_data_insert/<str:pname>/<int:weeks>/',views.report_insert,name="report_data_insert"),

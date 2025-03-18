@@ -1005,3 +1005,18 @@ def report_update(request,pname):
         return Response("Done")
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['PUT'])
+def project_data_delete(request,pname):
+    obj = request.data
+    for i in obj:
+        objs = project_efforts.objects.filter(project_name = pname , object = i['objects'])
+        if objs:
+            objecs = project_efforts.objects.get(project_name = pname , object = i['objects'])
+            if objecs:
+                objecs.delete()
+    
+    
+    return Response(status=status.HTTP_202_ACCEPTED)
+        
