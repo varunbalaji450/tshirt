@@ -238,18 +238,24 @@ main::-webkit-scrollbar{
 
 .review-form .ant-table .ant-table-tbody > tr > td:nth-child(1) > input{
     padding : 10px !important;
-    width: 190px !important;
+    width: 250px !important;
     overflow: scroll;
     height: 30px;
 }
 .review-form .ant-table .ant-table-tbody > tr > td:nth-child(2) > input{
+    padding : 10px !important;
+    width: 220px !important;
+    overflow: scroll;
+    height: 30px;
+}
+.review-form .ant-table .ant-table-tbody > tr > td:nth-child(3) > input{
     padding : 10px !important;
     width: 60px !important;
     height: 30px;
 }
 .review-form .ant-table .ant-table-tbody > tr > td{
   padding : 10px !important;
-  width:  200px !important
+  width:  230px !important
 }
 
 .hometable .ant-table .ant-table-tbody > tr > td:nth-child(1){

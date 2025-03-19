@@ -1,17 +1,25 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Input, Table, Select, Button, message} from "antd";
+import { Input, Table, Select, Button, message, Checkbox, Modal} from "antd";
 import axios, { all } from 'axios';
 import { useParams } from 'react-router-dom';
 import { SearchOutlined, HomeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { AiFillDownSquare } from 'react-icons/ai';
 import debounce from 'lodash/debounce';
+import { constant } from 'lodash';
+import { IoAddCircleSharp } from "react-icons/io5";
+import { LuSaveAll } from "react-icons/lu";
+import { FaFileExport } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
+import { IoIosHome } from "react-icons/io";
+ 
+ 
 const { Option } = Select;
  
 const Tshirt = () => {
     const navigate = useNavigate();
     const [masterData, setMasterData] = useState([]);
-    const [allData, setAllData] = useState();
+    const [allData, setAllData] = useState([]);
     const [tempmasterData, setTempMasterData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [projects, setProjects] = useState([]);
@@ -25,6 +33,8 @@ const Tshirt = () => {
     const { projectName } = useParams();
     const [searchText, setSearchText] = useState('');
     const [searchData, setSearchData] = useState([]);
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [popUp, setPopUp] = useState(false);
     const tableRef = useRef(null);
     useEffect(() => {
         setSelectedProject(projectName);
@@ -35,7 +45,7 @@ const Tshirt = () => {
                 console.log('response recieved successfully');
                 console.log(res);
                 setProjects(res.data);          
-                console.log(projects);
+                // console.log(projects);
                
             }).catch(err=>{
                 console.log(err);                
@@ -53,249 +63,250 @@ const Tshirt = () => {
         }
     }, [masterData, searchData, inscopeData, outscopeData]); // Correct dependency array
  
-    const handelInscopeData = ()=>{
-        if(inscopeBool){
+    const handelInscopeData = () => {
+        if (inscopeBool) {
             setInscopeBool(false);
             setOutscopeBool(false);
-            // setAllData(masterData);
-            setAllData([]);
-            setTimeout(() => {
-                setAllData(masterData);
-            }, 10);
-        }else{
-            console.log("Hello in HandlInscope Else");
+            setAllData(masterData); // Directly set masterData
+        } else {
             setOutscopeBool(false);
-            setAllData([]);
-            setTimeout(() => {
-                console.log(masterData);
-                const temp = masterData.filter((obj)=>{
-                    console.log(obj.scope);            
-                    return obj.scope && obj.scope.toLowerCase() === 'inscope';
-                });
-                console.log(temp);
-                setAllData(temp);
-                setInscopeBool(true);
-            }, 10);
+            const temp = masterData.filter((obj) => obj.scope && obj.scope.toLowerCase() === 'inscope');
+            setAllData(temp);
+            setInscopeBool(true);
         }
-       
-       
-    }
-    const handelOutscopeData = ()=>{
-        if(outscopeBool){
-            setAllData([]);
+    };
+   
+    const handelOutscopeData = () => {
+        if (outscopeBool) {
+            setAllData(masterData); // Directly set masterData
             setOutscopeBool(false);
             setInscopeBool(false);
-            setTimeout(() => {
-                setAllData(masterData);
-            }, 0);
-           
-            return;
-        }
-        setInscopeBool(false);
-        // setInscopeData([]);
-        // setOutscopeData([]);
-        setAllData([]);
-        setTimeout(() => {
-            // console.log(masterData);
-            const temp = masterData.filter((obj)=>{
-                console.log(obj.scope);            
-                return obj.scope && obj.scope.toLowerCase() === 'outscope';
-            });
-            // console.log(temp);
+        } else {
+            setInscopeBool(false);
+            const temp = masterData.filter((obj) => obj.scope && obj.scope.toLowerCase() === 'outscope');
             setAllData(temp);
             setOutscopeBool(true);
-        }, 10);
+        }
+    };
+    const handleCheckboxChange = (record, checked) => {
+       
+        if (checked) {
+            setSelectedRows([...selectedRows, record]);
+        } else {
+            setSelectedRows(selectedRows.filter(row => row.id !== record.id));
+        }
+        console.log(selectedRows);
     }
  
    // NO CHANGE
-    const columns = [
-        {
-            title: 'Objects',
-            dataIndex: 'object',
-            key: 'object',
-            align: 'center',
-            render: (text, record, index) => (
-                <Input
-                style={{width:"auto"}}
-                    defaultValue={text || ''}
-                    onChange={(e) => handleInputChange(index, 'object', e.target.value)}
+   const columns = [
+    {
+        title: '',
+        dataIndex: 'checkbox',
+        key: 'checkbox',
+        width: '30px', // Adjust width as needed
+        render: (text, record) => (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Checkbox
+                    style={{ width: '10px', height: '10px' }}
+                    onChange={(e) => handleCheckboxChange(record, e.target.checked)}
+                    checked={selectedRows.some(row => row.id === record.id)}
                 />
-            ),
-        },
-        {
-            title: 'module',
-            dataIndex: 'module',
-            key: 'module',
-            align: 'center',
-            render: (text, record, index) => (
-                <Input
-                    defaultValue={text || ''}
-                    onChange={(e) => handleInputChange(index, 'module', e.target.value)}
-                />
-            ),
-        },
-        {
-            title: 'Data Object Type',
-            dataIndex: 'data_object_type',
-            key: 'data_object_type',
-            align: 'center',
-            render: (text, record, index) => (
-                <Select
-                    defaultValue={text}
-                    style={{ width: 120 }}
-                    onChange={(value) => handleSelectChange(index, 'data_object_type', value)}
-                >
-                    <Option value="Master Data">Master Data</Option>
-                    <Option value="Transactional data">Transactional data</Option>
-                </Select>
-            ),
-        },
-        {
-            title: 'Transformation Complexity',
-            dataIndex: 'transformation_complexity',
-            key: 'transformation_complexity',
-            align: 'center',
-            render: (text, record, index) => (
-                <Select
-                    defaultValue={text}
-                    style={{ width: 120 }}
-                    onChange={(value) => handleSelectChange(index, 'transformation_complexity', value)}
-                >
-                    <Option value="Medium">Medium</Option>
-                    <Option value="Low">Low</Option>
-                    <Option value="Complex">Complex</Option>
-                </Select>
-            ),
-        },
-        {
-            title: 'Load Complexity',
-            dataIndex: 'load_complexity',
-            key: 'load_complexity',
-            align: 'center',
-            render: (text, record, index) => (
-                <Select
-                    defaultValue={text}
-                    style={{ width: 120 }}
-                    onChange={(value) => handleSelectChange(index, 'load_complexity', value)}
-                >
-                    <Option value="0-10000">0 - 10000</Option>
-                    <Option value="10001-50000">10001 - 50000</Option>
-                    <Option value="50000-100000">50000 - 100000</Option>
-                    <Option value=">100000">&gt;100000</Option>
-                </Select>
-            ),
-        },
-        {
-            title: 'Source Complexity',
-            dataIndex: 'source_complexity',
-            key: 'source_complexity',
-            align: 'center',
-            render: (text, record, index) => (
-                <Select
-                    defaultValue={text}
-                    style={{ width: 120 }}
-                    onChange={(value) => handleSelectChange(index, 'source_complexity', value)}
-                >
-                    <Option value="Low">Low</Option>
-                    <Option value="Medium">Medium</Option>
-                    <Option value="Complex">Complex</Option>
-                </Select>
-            ),
-        },
-        {
-            title:
-                <>
-                <Button style={{
-                    marginRight: '8px', // Note the camelCase
-                    padding: 0,
-                    textDecoration: 'none', // Note the camelCase
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                }}
-                onClick={handelInscopeData}
-                >Inscope</Button>
+            </div>
+        ),
+    },
+    {
+        title: 'Objects',
+        dataIndex: 'object',
+        key: 'object',
+        align: 'center',
+        // width: '120px',
+        render: (text, record, index) => (
+            <Input
+                // style={{ width: "100%" }}
+                value={record.object || ''} // Use record.object instead of defaultValue
+                onChange={(e) => handleInputChange(index, 'object', e.target.value)}
+            />
+        ),
+    },
+    {
+        title: 'module',
+        dataIndex: 'module',
+        key: 'module',
+        align: 'center',
+        render: (text, record, index) => (
+            <Input
+                value={record.module || ''} // Use record.module instead of defaultValue
+                onChange={(e) => handleInputChange(index, 'module', e.target.value)}
+            />
+        ),
+    },
+    {
+        title: 'Data Object Type',
+        dataIndex: 'data_object_type',
+        key: 'data_object_type',
+        align: 'center',
+        render: (text, record, index) => (
+            <Select
+                value={record.data_object_type} // use value instead of defaultValue
+                style={{ width: 120 }}
+                onChange={(value) => handleSelectChange(index, 'data_object_type', value)}
+            >
+                <Option value="Master Data">Master Data</Option>
+                <Option value="Transactional data">Transactional data</Option>
+            </Select>
+        ),
+    },
+    {
+        title: 'Transformation Complexity',
+        dataIndex: 'transformation_complexity',
+        key: 'transformation_complexity',
+        align: 'center',
+        render: (text, record, index) => (
+            <Select
+                value={record.transformation_complexity} // use value instead of defaultValue
+                style={{ width: 120 }}
+                onChange={(value) => handleSelectChange(index, 'transformation_complexity', value)}
+            >
+                <Option value="Medium">Medium</Option>
+                <Option value="Low">Low</Option>
+                <Option value="Complex">Complex</Option>
+            </Select>
+        ),
+    },
+    {
+        title: 'Load Complexity',
+        dataIndex: 'load_complexity',
+        key: 'load_complexity',
+        align: 'center',
+        render: (text, record, index) => (
+            <Select
+                value={record.load_complexity} // use value instead of defaultValue
+                style={{ width: 120 }}
+                onChange={(value) => handleSelectChange(index, 'load_complexity', value)}
+            >
+                <Option value="0-10000">0 - 10000</Option>
+                <Option value="10001-50000">10001 - 50000</Option>
+                <Option value="50000-100000">50000 - 100000</Option>
+                <Option value=">100000">&gt;100000</Option>
+            </Select>
+        ),
+    },
+    {
+        title: 'Source Complexity',
+        dataIndex: 'source_complexity',
+        key: 'source_complexity',
+        align: 'center',
+        render: (text, record, index) => (
+            <Select
+                value={record.source_complexity} // use value instead of defaultValue
+                style={{ width: 120 }}
+                onChange={(value) => handleSelectChange(index, 'source_complexity', value)}
+            >
+                <Option value="Low">Low</Option>
+                <Option value="Medium">Medium</Option>
+                <Option value="Complex">Complex</Option>
+            </Select>
+        ),
+    },
+    {
+        title: (
+            <>
                 <Button
-                style={{
-                    marginRight: '8px', // Note the camelCase
-                    padding: 0,
-                    textDecoration: 'none', // Note the camelCase
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                }}
-                onClick={handelOutscopeData}
-                >OutScope</Button>
-                </>
-            ,
-            dataIndex: 'scope',
-            key: 'scope',
-            align: 'center',
-            render: (text, record, index) => (
-                <Select
-                    defaultValue={text}
-                    style={{ width: 120 }}
-                    onChange={(value) => handleSelectChange(index, 'scope', value)}
+                    style={{
+                        marginRight: '8px',
+                        padding: 0,
+                        textDecoration: 'none',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                    }}
+                    onClick={handelInscopeData}
                 >
-                    <Option value="InScope">InScope</Option>
-                    <Option value="OutScope">OutScope</Option>
-                </Select>
-            ),
-        },
- 
-        {
-            title: 'Object Development',
-            dataIndex: 'object_development',
-            key: 'object_development',
-            align: 'center',
-        },
-        {
-            title: 'Iteration 1 - Data Loading',
-            dataIndex: 'iteration_1_data_loading',
-            key: 'iteration_1_data_loading',
-            align: 'center',
-        },
-        {
-            title: 'Defects/Changes after loads based on the feedback',
-            dataIndex: 'iteration_1_defects',
-            key: 'iteration_1_defects',
-            align: 'center',
-        },
-        {
-            title: 'Iteration 2 (Data loading to System 2)',
-            dataIndex: 'iteration_2_data_loading',
-            key: 'iteration_2_data_loading',
-            align: 'center',
-        },
-        {
-            title: 'Defects/Changes after loads based on the feedback',
-            dataIndex: 'iteration_2_defects',
-            key: 'iteration_2_defects',
-            align: 'center',
-        },
-        {
-            title: 'Iteration 3 (Data loading to System 3)',
-            dataIndex: 'iteration_3_data_loading',
-            key: 'iteration_3_data_loading',
-            align: 'center',
-        },
-        {
-            title: 'Defects/Changes after loads based on the feedback',
-            dataIndex: 'iteration_3_defects',
-            key: 'iteration_3_defects',
-            align: 'center',
-        },
-        {
-            title: 'PRD Data Loads',
-            dataIndex: 'production_data_loads',
-            key: 'production_data_loads',
-            align: 'center',
-        },
-        {
-            title: 'Total',
-            dataIndex: 'total',
-            key: 'total',
-            align: 'center',
-        },
-    ];
+                    Inscope
+                </Button>
+                <Button
+                    style={{
+                        marginRight: '8px',
+                        padding: 0,
+                        textDecoration: 'none',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                    }}
+                    onClick={handelOutscopeData}
+                >
+                    OutScope
+                </Button>
+            </>
+        ),
+        dataIndex: 'scope',
+        key: 'scope',
+        align: 'center',
+        render: (text, record, index) => (
+            <Select
+                value={record.scope} // use value instead of defaultValue
+                style={{ width: 120 }}
+                onChange={(value) => handleSelectChange(index, 'scope', value)}
+            >
+                <Option value="InScope">InScope</Option>
+                <Option value="OutScope">OutScope</Option>
+            </Select>
+        ),
+    },
+    {
+        title: 'Object Development',
+        dataIndex: 'object_development',
+        key: 'object_development',
+        align: 'center',
+    },
+    {
+        title: 'Iteration 1 - Data Loading',
+        dataIndex: 'iteration_1_data_loading',
+        key: 'iteration_1_data_loading',
+        align: 'center',
+    },
+    {
+        title: 'Defects/Changes after loads based on the feedback',
+        dataIndex: 'iteration_1_defects',
+        key: 'iteration_1_defects',
+        align: 'center',
+    },
+    {
+        title: 'Iteration 2 (Data loading to System 2)',
+        dataIndex: 'iteration_2_data_loading',
+        key: 'iteration_2_data_loading',
+        align: 'center',
+    },
+    {
+        title: 'Defects/Changes after loads based on the feedback',
+        dataIndex: 'iteration_2_defects',
+        key: 'iteration_2_defects',
+        align: 'center',
+    },
+    {  
+        title: 'Iteration 3 (Data loading to System 3)',
+        dataIndex: 'iteration_3_data_loading',
+        key: 'iteration_3_data_loading',
+        align: 'center',
+    },
+    {
+        title: 'Defects/Changes after loads based on the feedback',
+        dataIndex: 'iteration_3_defects',
+        key: 'iteration_3_defects',
+        align: 'center',
+    },
+    {
+        title: 'PRD Data Loads',
+        dataIndex: 'production_data_loads',
+        key: 'production_data_loads',
+        align: 'center',
+    },
+    {
+        title: 'Total',
+        dataIndex: 'total',
+        key: 'total',
+        align: 'center',
+    },
+];
     // NO CHANGE
     const handelSaveTable = ()=>{
         // saving project int db
@@ -322,19 +333,12 @@ const Tshirt = () => {
      // NO CHANGE
     const handleExcel = async () => {
         try {
-            // const saveResponse = await axios.post(`http://127.0.0.1:8000/temp_save/`,
-            // inscopeData.length>0?inscopeData:outscopeData.length>0 ? outscopeData:masterData);
-            // console.log('Temp saved Successfully');
-            // console.log(saveResponse.data);
    
             const downloadResponse = await axios.post(`http://127.0.0.1:8000/sqllite3_to_excel/`,
                 allData,
             {
                 responseType: 'blob', // C rucial: Get response as a blob
             });
-   
-            console.log('Excel downloaded Successfully');
-            console.log(downloadResponse);
    
             const blob = new Blob([downloadResponse.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
@@ -361,485 +365,128 @@ const Tshirt = () => {
         }
     };
     const handleInputChange = (index, field, value) => {
-        console.log("changed here ");
-        console.log(index, field, value);
-        let searchTemp = allData[index];
-            searchTemp[field] = value;
-            console.log(searchTemp);
-            const actData = masterData.filter(ele=>{
-                if(ele.id === searchTemp.id){
-                    return searchTemp
-                }else{
-                    return ele
-                }
-            });
-            const actData1 = allData.filter(ele=>{
-                if(ele.id === searchTemp.id){
-                    return searchTemp
-                }else{
-                    return ele
-                }
-            });
-            console.log(actData);
-            console.log(actData1);
-            setMasterData(actData);
-            setAllData(actData1);
-        //     setMasterData([]);
-        //     setAllData([]);
-        // setTimeout(() => {
-        //     setMasterData(actData);
-        //     setAllData(actData1);
- 
-        // }, 10);
-                // console.log(actData);                
-        // const newData = [...masterData];
-        // newData[index][field] = value;
-        // // alert();
-        // setMasterData(newData);
-        // setAllData(newData);
+        setAllData(prevAllData => {
+            const newData = [...prevAllData];
+            newData[index] = { ...newData[index], [field]: value };
+            return newData;
+        });
+   
+        setMasterData(prevMasterData => {
+            const newData = [...prevMasterData];
+            newData[index] = { ...newData[index], [field]: value };
+            return newData;
+        });
     };
-    // const handleInputChange = (index, field, value) => {
-    //     console.log("changed here", index, field, value);
    
-    //     // 1. Update allData
-    //     setAllData(prevAllData => {
-    //         const updatedAllData = prevAllData.map((item, i) => {
-    //             if (i === index) {
-    //                 return { ...item, [field]: value };
-    //             }
-    //             return item;
-    //         });
-    //         console.log("Updated allData:", updatedAllData);
-    //         return updatedAllData;
-    //     });
-   
-    //     // 2. Update masterData (assuming it's related by id)
-    //     setMasterData(prevMasterData => {
-    //         return prevMasterData.map(item => {
-    //             if (item.id === allData[index].id) {
-    //                 return { ...item, [field]: value };
-    //             }
-    //             return item;
-    //         });
-    //     });
-    // };
     const handleSelectChange = async (index, field, value) => {
-        console.log("changed here ");
-        if(inscopeBool === true){
-            // console.log("inscope");
-            // console.log(allData);
-            // console.log(index, field, value);        
-            setLoading(true);
-            const updatedRow = { ...allData[index], [field]: value };
-            // console.log(updatedRow);
-            const requiredFieldsFilled = checkRequiredFields(updatedRow);
-            if (requiredFieldsFilled) {
-                try {
-                    // console.log(updatedRow);
-                    let transComplexcity = updatedRow?.transformation_complexity
-                    let loadComplexcity = updatedRow?.load_complexity
-                    let sourceComplexcity = updatedRow?.source_complexity
-                    let data_object = updatedRow?.data_object_type
-                    let scope = updatedRow?.scope;
-                    const updatedMasterData = allData.map((item, i) => {
-                        if (i === index) {
-                        return { ...item, scope: scope }; // FSearcha new object with the updated scope
-                        } else {
-                        return item; // Return the original object if not the one being updated
-                        }
-                    });
-                    // console.log(updatedMasterData);
-                   
-                    setAllData(updatedMasterData);
-                    if(scope.toLowerCase() === "inscope"){
-                        // console.log('true');
-                    }else{
-                        // console.log('false');
-                    }
-                    // console.log(' update row');
-                    setLoading(false);
-                    if(scope.toLowerCase() === "inscope"){
-                        console.log(allData);
-                       
-                        const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
-                        let finalData = {
-                            "id": allData[index]?.id,
-                            "object": allData[index]?.object,
-                            "module": allData[index]?.module,
-                            "data_object_type": data_object,
-                            "transformation_complexity": response?.data[0]?.transformation_complexity,
-                            "load_complexity": response?.data[0]?.load_complexity,
-                            "source_complexity": response?.data[0]?.source_complexity,
-                            "scope": scope,
-                            "object_development": response?.data[0]?.object_development,
-                            "iteration_1_data_loading": response?.data[0]?.iteration_1_data_loading,
-                            "iteration_1_defects": response?.data[0]?.iteration_1_defects,
-                            "iteration_2_data_loading": response?.data[0]?.iteration_2_data_loading,
-                            "iteration_2_defects": response?.data[0]?.iteration_2_defects,
-                            "iteration_3_data_loading": response?.data[0]?.iteration_3_data_loading,
-                            "iteration_3_defects": response?.data[0]?.iteration_3_defects,
-                            "production_data_loads": response?.data[0]?.production_data_loads,
-                            "total": response?.data[0]?.total
-                        };
-                        // console.log(' final master data');
-                        // console.log(finalData);
-                        const newData = [...allData];
+        console.log("hello world");
+   
+        setLoading(true);
+   
+        const updatedRow = { ...allData[index], [field]: value };
+        console.log("updated row");
+        console.log(updatedRow);
+   
+        const requiredFieldsFilled = checkRequiredFields(updatedRow);
+   
+        if (requiredFieldsFilled) {
+            try {
+                const { transformation_complexity, load_complexity, source_complexity, data_object_type, scope } = updatedRow;
+   
+                setAllData(prevAllData => {
+                    const newData = [...prevAllData];
+                    newData[index] = { ...newData[index], scope };
+                    return newData;
+                });
+   
+                setMasterData(prevMasterData => {
+                    const newData = [...prevMasterData];
+                    newData[index] = { ...newData[index], scope };
+                    return newData;
+                });
+   
+                if (scope.toLowerCase() === "inscope") {
+                    const response = await axios.get(
+                        `http://127.0.0.1:8000/estimated_time/${transformation_complexity}/${load_complexity}/${source_complexity}/`,
+                        {params: updatedRow}
+                    );
+   
+                    const finalData = {
+                        id: allData[index]?.id,
+                        object: allData[index]?.object,
+                        module: allData[index]?.module,
+                        data_object_type,
+                        transformation_complexity: response?.data[0]?.transformation_complexity,
+                        load_complexity: response?.data[0]?.load_complexity,
+                        source_complexity: response?.data[0]?.source_complexity,
+                        scope,
+                        object_development: response?.data[0]?.object_development,
+                        iteration_1_data_loading: response?.data[0]?.iteration_1_data_loading,
+                        iteration_1_defects: response?.data[0]?.iteration_1_defects,
+                        iteration_2_data_loading: response?.data[0]?.iteration_2_data_loading,
+                        iteration_2_defects: response?.data[0]?.iteration_2_defects,
+                        iteration_3_data_loading: response?.data[0]?.iteration_3_data_loading,
+                        iteration_3_defects: response?.data[0]?.iteration_3_defects,
+                        production_data_loads: response?.data[0]?.production_data_loads,
+                        total: response?.data[0]?.total,
+                    };
+                    console.log(finalData);
+   
+                    setAllData(prevAllData => {
+                        const newData = [...prevAllData];
                         newData[index] = finalData;
-                        // console.log(newData);
-                        // alert();
-                        // setMasterData(newData);
-                        // console.log(newData);                        
-                        setAllData(newData);
-                    }else{
-                        console.log(allData);
- 
-                        // console.log("out scope line 432");
-                        // console.log(allData[index])
-                        let finalData = {
-                            "id": allData[index]?.id,
-                            "object": allData[index]?.object,
-                            "module": allData[index]?.module,
-                            "data_object_type": data_object,
-                            "transformation_complexity":transComplexcity,
-                            "load_complexity":loadComplexcity,
-                            "source_complexity":sourceComplexcity,
-                            "scope": scope,
-                            "object_development": null,
-                            "iteration_1_data_loading":null ,
-                            "iteration_1_defects": null,
-                            "iteration_2_data_loading": null,
-                            "iteration_2_defects": null,
-                            "iteration_3_data_loading":null ,
-                            "iteration_3_defects": null,
-                            "production_data_loads": null,
-                            "total":0        
-                        };
-                        // now remove final data in allData and append this updated data to master data
-                       
-                        // console.log(finalData);
-                        // console.log("bhoooooom");
-                        setAllData([]);
-                        setTimeout(() => {
-                            const newData = allData.filter((obj) => obj.id !== finalData.id);
-                            // console.log(newData);
-                            setAllData(newData);
-                            const updatedMasterData = masterData.map(element => {
-                                if (element.id === finalData.id) {
-                                    // Create a new object with the updated scope
-                                    // return { ...element, scope: finalData.scope }
-                                    return finalData;;
- 
-                                }
-                                return element; // Keep other elements unchanged
-                            });
-                           
-                            setMasterData(updatedMasterData);
-                        }, 1);
-                        // setTimeout(() => {
-                           
-                        // }, 10);
-                       
-                        // now update in master data
-                       
-                    }
-                } catch (error) {
-                    console.error("Error updating data:", error);
-                    // Handle error
-                } finally {
-                }    
-            } else {
-                const newData = [...allData];
-                newData[index][field] = value;
- 
-                // setMasterData(newData);
-                setAllData(newData);
+                        return newData;
+                    });
+                    setMasterData(prevMasterData => {
+                        const newData = [...prevMasterData];
+                        newData[index] = finalData;
+                        return newData;
+                    });
+                } else {
+                    const finalData = {
+                        id: allData[index]?.id,
+                        object: allData[index]?.object,
+                        module: allData[index]?.module,
+                        data_object_type,
+                        transformation_complexity,
+                        load_complexity,
+                        source_complexity,
+                        scope,
+                        object_development: null,
+                        iteration_1_data_loading: null,
+                        iteration_1_defects: null,
+                        iteration_2_data_loading: null,
+                        iteration_2_defects: null,
+                        iteration_3_data_loading: null,
+                        iteration_3_defects: null,
+                        production_data_loads: null,
+                        total: 0,
+                    };
+                    setAllData(prevAllData => {
+                        const newData = [...prevAllData];
+                        newData[index] = finalData;
+                        return newData;
+                    });
+                    setMasterData(prevMasterData => {
+                        const newData = [...prevMasterData];
+                        newData[index] = finalData;
+                        return newData;
+                    });
+                }
+            } catch (error) {
+                console.error("Error updating data:", error);
+            } finally {
                 setLoading(false);
             }
-        }else if(outscopeBool=== true){
-            setLoading(true);
-            const updatedRow = { ...allData[index], [field]: value };
-            // console.log(updatedRow);
-            const requiredFieldsFilled = checkRequiredFields(updatedRow);
-            if (requiredFieldsFilled) {
-                try {
-                    // console.log(updatedRow);
-                    let transComplexcity = updatedRow?.transformation_complexity
-                    let loadComplexcity = updatedRow?.load_complexity
-                    let sourceComplexcity = updatedRow?.source_complexity
-                    let data_object = updatedRow?.data_object_type
-                    let scope = updatedRow?.scope;
-                    const updatedMasterData = allData.map((item, i) => {
-                        if (i === index) {
-                        return { ...item, scope: scope }; // FSearcha new object with the updated scope
-                        } else {
-                        return item; // Return the original object if not the one being updated
-                        }
-                    });
-                    console.log(updatedMasterData);
-                   
-                    setAllData(updatedMasterData);
-                    // ---------------------------------------------------------------------------------------
-                    if(scope.toLowerCase() === "inscope"){
-                        // console.log('true');
-                    }else{
-                        // console.log('false');
-                    }
-                    // console.log(' update row');
-                    setLoading(false);
-                    if(scope.toLowerCase() === "inscope"){
-                        console.log(allData);
-                       
-                        const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
-                        let finalData = {
-                            "id": allData[index]?.id,
-                            "object": allData[index]?.object,
-                            "module": allData[index]?.module,
-                            "data_object_type": data_object,
-                            "transformation_complexity": response?.data[0]?.transformation_complexity,
-                            "load_complexity": response?.data[0]?.load_complexity,
-                            "source_complexity": response?.data[0]?.source_complexity,
-                            "scope": scope,
-                            "object_development": response?.data[0]?.object_development,
-                            "iteration_1_data_loading": response?.data[0]?.iteration_1_data_loading,
-                            "iteration_1_defects": response?.data[0]?.iteration_1_defects,
-                            "iteration_2_data_loading": response?.data[0]?.iteration_2_data_loading,
-                            "iteration_2_defects": response?.data[0]?.iteration_2_defects,
-                            "iteration_3_data_loading": response?.data[0]?.iteration_3_data_loading,
-                            "iteration_3_defects": response?.data[0]?.iteration_3_defects,
-                            "production_data_loads": response?.data[0]?.production_data_loads,
-                            "total": response?.data[0]?.total
-                        };
-                        // console.log(' final master data');
-                        console.log(finalData);
-                        // const newData = [...allData];
-                        // newData[index] = finalData;
-                        // console.log(newData);
-                        // alert();
-                        // setMasterData(newData);
-                        // console.log(newData);                        
-                        setAllData([]);
-                        console.log(
-                            "nulled alldata"
-                        );
-                       
-                        setTimeout(() => {
-                            const newData = allData.filter((obj) => obj.id !== finalData.id);
-                            console.log(newData);
-                            setAllData(newData);
-                            const updatedMasterData = masterData.map(element => {
-                                if (element.id === finalData.id) {
-                                    // Create a new object with the updated scope
-                                    // return { ...element, scope: finalData.scope }
-                                    return finalData;;
- 
-                                }
-                                return element; // Keep other elements unchanged
-                            });
-                           
-                            setMasterData(updatedMasterData);
-                        }, 1);
-                    }else{
-                        // console.log("out scope line 432");
-                        // console.log(allData[index])
-                        let finalData = {
-                            "id": allData[index]?.id,
-                            "object": allData[index]?.object,
-                            "module": allData[index]?.module,
-                            "data_object_type": data_object,
-                            "transformation_complexity":transComplexcity,
-                            "load_complexity":loadComplexcity,
-                            "source_complexity":sourceComplexcity,
-                            "scope": scope,
-                            "object_development": null,
-                            "iteration_1_data_loading":null ,
-                            "iteration_1_defects": null,
-                            "iteration_2_data_loading": null,
-                            "iteration_2_defects": null,
-                            "iteration_3_data_loading":null ,
-                            "iteration_3_defects": null,
-                            "production_data_loads": null,
-                            "total":0        
-                        };
-                        // now remove final data in allData and append this updated data to master data
-                       
-                        // console.log(finalData);
-                        // console.log("bhoooooom");
-                        // setAllData([]);
-                        // setTimeout(() => {
-                        //     const newData = allData.filter((obj) => obj.id !== finalData.id);
-                        //     // console.log(newData);
-                        //     setAllData(newData);
-                        //     const updatedMasterData = masterData.map(element => {
-                        //         if (element.id === finalData.id) {
-                        //             // Create a new object with the updated scope
-                        //             // return { ...element, scope: finalData.scope }
-                        //             return finalData;
- 
-                        //         }
-                        //         return element; // Keep other elements unchanged
-                        //     });
-                           
-                        //     setMasterData(updatedMasterData);
-                        // }, 1);
-                        // setTimeout(() => {
-                           
-                        // }, 10);
-                       
-                        // now update in master data
-                        const newData = [...allData];
-                        newData[index] = finalData;
-                        // console.log(newData);
-                        // alert();
-                        // setMasterData(newData);
-                        // console.log(newData);                        
-                        setAllData(newData);
-                        const updatedMasterData = masterData.map(element => {
-                            if (element.id === finalData.id) {
-                                // Create a new object with the updated scope
-                                // return { ...element, scope: finalData.scope }
-                                return finalData;;
- 
-                            }
-                            return element; // Keep other elements unchanged
-                        });
-                       
-                        setMasterData(updatedMasterData);
-                       
-                    }
-                } catch (error) {
-                    console.error("Error updating data:", error);
-                    // Handle error
-                } finally {
-                }    
-            } else {
-                const newData = [...allData];
-                newData[index][field] = value;
- 
-                // setMasterData(newData);
-                setAllData(newData);
-                setLoading(false);
-            }
-        }else{    
-            setLoading(true);
-            const updatedRow = { ...allData[index], [field]: value };
-            const requiredFieldsFilled = checkRequiredFields(updatedRow);
-            if (requiredFieldsFilled) {
-                try {
-                    console.log(updatedRow);
-                    let transComplexcity = updatedRow?.transformation_complexity
-                    let loadComplexcity = updatedRow?.load_complexity
-                    let sourceComplexcity = updatedRow?.source_complexity
-                    let data_object = updatedRow?.data_object_type
-                    let scope = updatedRow?.scope;
-                    const updatedMasterData = allData.map((item, i) => {
-                        if (i === index) {
-                        return { ...item, scope: scope }; // FSearcha new object with the updated scope
-                        } else {
-                        return item; // Return the original object if not the one being updated
-                        }
-                    });
-                    // setMasterData(updatedMasterData);
-                    // -----------------------------------setAllData(updatedMasterData);
-                    // console.log(transComplexcity," ",loadComplexcity, " ", sourceComplexcity)
-                    // console.log('scope', scope);
-                    if(scope.toLowerCase() === "inscope"){
-                        // console.log('true');
-                    }else{
-                        // console.log('false');
-                    }
-                    // console.log(' update row');
-                    setLoading(false);
-                    // console.log(updatedRow);
-                    if(scope.toLowerCase() === "inscope"){
-                        const response = await axios.get(`http://127.0.0.1:8000/estimated_time/${transComplexcity}/${loadComplexcity}/${sourceComplexcity}/`, updatedRow);
-                        // console.log(allData[index])
-                        let finalData = {
-                            "id": allData[index]?.id,
-                            "object": allData[index]?.object,
-                            "module": allData[index]?.module,
-                            "data_object_type": data_object,
-                            "transformation_complexity": response?.data[0]?.transformation_complexity,
-                            "load_complexity": response?.data[0]?.load_complexity,
-                            "source_complexity": response?.data[0]?.source_complexity,
-                            "scope": scope,
-                            "object_development": response?.data[0]?.object_development,
-                            "iteration_1_data_loading": response?.data[0]?.iteration_1_data_loading,
-                            "iteration_1_defects": response?.data[0]?.iteration_1_defects,
-                            "iteration_2_data_loading": response?.data[0]?.iteration_2_data_loading,
-                            "iteration_2_defects": response?.data[0]?.iteration_2_defects,
-                            "iteration_3_data_loading": response?.data[0]?.iteration_3_data_loading,
-                            "iteration_3_defects": response?.data[0]?.iteration_3_defects,
-                            "production_data_loads": response?.data[0]?.production_data_loads,
-                            "total": response?.data[0]?.total
-                        };
-                        // console.log(' final master data');
-                        // console.log(finalData);
-                        const newData = [...allData];
-                        newData[index] = finalData;
-                        // console.log(newData);
-                        // alert();
-                        // setMasterData(newData);
-                        setAllData(newData);
-                        const updatedMasterData = masterData.map(element => {
-                            if (element.id === finalData.id) {
-                                // Create a new object with the updated scope
-                                // return { ...element, scope: finalData.scope }
-                                return finalData;;
- 
-                            }
-                            return element; // Keep other elements unchanged
-                        });
-                       
-                        setMasterData(updatedMasterData);
- 
- 
-                    }else{
-                        // console.log(allData[index])
-                        let finalData = {
-                            "id": allData[index]?.id,
-                            "object": allData[index]?.object,
-                            "module": allData[index]?.module,
-                            "data_object_type": data_object,
-                            "transformation_complexity":transComplexcity,
-                            "load_complexity":loadComplexcity,
-                            "source_complexity":sourceComplexcity,
-                            "scope": scope,
-                            "object_development": null,
-                            "iteration_1_data_loading":null ,
-                            "iteration_1_defects": null,
-                            "iteration_2_data_loading": null,
-                            "iteration_2_defects": null,
-                            "iteration_3_data_loading":null ,
-                            "iteration_3_defects": null,
-                            "production_data_loads": null,
-                            "total":0        
-                        };
-                        // console.log(' final master data');
-                        // console.log(finalData);
-                        const newData = [...masterData];
-                        newData[index] = finalData;
-                        // console.log(newData);
-                        // alert();
-                        setMasterData(newData);
-                        setAllData(newData);
- 
-                    }
-                } catch (error) {
-                    console.error("Error updating data:", error);
-                    // Handle error
-                } finally {
-                }    
-            } else {
-                const newData = [...masterData];
-                newData[index][field] = value;
-                setMasterData(newData);
-                setAllData(newData);
-                setLoading(false);
-            }
+        } else {
+            setAllData(prevAllData => {
+                const newData = [...prevAllData];
+                newData[index] = { ...newData[index], [field]: value };
+                return newData;
+            });
+            setLoading(false);
         }
     };
- 
- 
  
     const checkRequiredFields = (row) => {
         const requiredFields = ['transformation_complexity', 'load_complexity', 'source_complexity', 'scope'];
@@ -876,12 +523,8 @@ const Tshirt = () => {
         console.log(updatedData)
         setMasterData([]);
         setAllData([]);
-        setTimeout(() => {
-            setMasterData(updatedData);
-            setAllData(updatedData);
-        }, 100);
-        console.log(masterData);
-        // smoothScroll()  
+        setMasterData(updatedData);
+        setAllData(updatedData);
        
     };
    
@@ -899,9 +542,9 @@ const Tshirt = () => {
                 .then((res) => {
                 setMasterData([]);
                 setAllData([]);
-                setInscopeData([]);
-                setOutscopeData([]);
-                setSearchData([]);
+                // setInscopeData([]);
+                // setOutscopeData([]);
+                // setSearchData([]);
                 let temp = res.data;
                 console.log(temp);
                
@@ -959,55 +602,65 @@ const Tshirt = () => {
     };
     const handleSearchChange = (e) => {
         console.log("changed here 930");
-        setSearchText(e.target.value);
-        console.log(e.target.value, " 932");
-        if(e.target.value === ''){
-            if(inscopeBool === true){
-                const tempData = masterData.filter(ele=>{
-                    return ele?.scope.toLowerCase() === 'inscope'
-                })
-                console.log(tempData);
-                setAllData([]);
-                setTimeout(() => {
-                    setAllData(tempData);
-                }, 0);
-            }  
-            else if(outscopeBool === true){
-                const tempData = masterData.filter(ele=>{
-                    return ele?.scope.toLowerCase() === 'outscope'
-                })
-                console.log(tempData);
-                setAllData([]);
-                setTimeout(() => {
-                    setAllData(tempData);
-                }, 0);
-            }else{
-                setAllData([]);
-                setTimeout(() => {
-                    setAllData(masterData);
-                }, 0);
-            }
-    }
-        // setSearchData([]);
+        const newValue = e.target.value;
+        setSearchText(newValue);
+        console.log(newValue, " 962");
+   
+        let filteredData = masterData; // Start with the full masterData
+   
+        if (inscopeBool) {
+            filteredData = filteredData.filter(ele => ele?.scope.toLowerCase() === 'inscope');
+        } else if (outscopeBool) {
+            filteredData = filteredData.filter(ele => ele?.scope.toLowerCase() === 'outscope');
+        }
+   
+        if (newValue) {
+            filteredData = filteredData.filter(obj =>
+                obj.object.toLowerCase().includes(newValue.toLowerCase())
+            );
+        }
+   
+        setAllData(filteredData);
     };
-    const handleSearch = (e)=>{
-        console.log("changed here ");
-        console.log('handel search');
-        setAllData([]);        
-            setTimeout(() => {
-                    let temp = allData.filter((obj)=>{
-                    return obj.object.toLowerCase().includes(searchText.toLowerCase())
-                })
-                console.log(searchText);
-                console.log(temp);
-                setAllData(temp);
-            }, 0);
-           
-        // }
-        // setSearchData(temp);
-    }
+   
+    const handleSearch = () => {
+   
+        let filteredData = masterData;
+   
+        if (inscopeBool) {
+            filteredData = filteredData.filter(ele => ele?.scope.toLowerCase() === 'inscope');
+        } else if (outscopeBool) {
+            filteredData = filteredData.filter(ele => ele?.scope.toLowerCase() === 'outscope');
+        }
+   
+        if (searchText) {
+            filteredData = filteredData.filter(obj =>
+                obj.object.toLowerCase().includes(searchText.toLowerCase())
+            );
+        }
+        console.log(filteredData);
+        setAllData(filteredData);
+    };
     const homeClick=()=>{
         navigate(`/`);
+    };
+    const handleDeleteRows = () => {
+        setAllData(prevAllData =>
+            prevAllData.filter(ele => !selectedRows.some(row => row.id === ele.id))
+        );
+        setMasterData(prevMasterData =>
+            prevMasterData.filter(ele => !selectedRows.some(row => row.id === ele.id))
+        );
+        setSelectedRows([]);
+        setPopUp(false); // Clear selected rows after deletion
+    };
+    const handleConfirmationYes = ()=>{
+        handleDeleteRows();
+       
+    }
+    const handleConfirmationNo = ()=>{
+        setPopUp(false);
+        setSelectedRows([]);
     }
     return (
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -1023,90 +676,132 @@ const Tshirt = () => {
  
                 <h1>Data Migration - Effort and Estimation Report</h1>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' , justifyContent : 'space-between'}}> {/* Flexbox for alignment */}
-      <Select
-        style={{ width: 200, marginRight: '10px', marginBottom: '10px' }} // Add margin for spacing
-        placeholder="Select Project"
-        onChange={handleProjectChange}
-        value={selectedProject}
-      >
-        {projects && projects.length > 0 ? (
-          projects.map((element) => (
-            <Option key={element.project_name} value={element.project_name}>
-              {element.project_name}
-            </Option>
-          ))
-        ) : (
-          <Option value={null}>No projects available</Option>
-        )}
-      </Select>
-        <div>
-        <HomeOutlined style={{ fontSize: '22px', marginRight: '10px' }} onClick={homeClick}/>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+  {/* Select on the left */}
+  <Select
+    style={{ width: 200, marginBottom: '10px' }}
+    placeholder="Select Project"
+    onChange={handleProjectChange}
+    value={selectedProject}
+  >
+    {projects && projects.length > 0 ? (
+      projects.map((element) => (
+        <Option key={element.project_name} value={element.project_name}>
+          {element.project_name}
+        </Option>
+      ))
+    ) : (
+      <Option value={null}>No projects available</Option>
+    )}
+  </Select>
+ 
+  {/* Right side container for buttons and search */}
+  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end'}}>
+    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1px' }}>
       <Button
-        style={{ backgroundColor: 'blue', color: 'white', marginRight: '10px', marginBottom: '10px'  }}
+        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px' }}
+        onClick={homeClick}
+      >
+        <IoIosHome />
+      </Button>
+ 
+      <Button
+        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px' }}
         onClick={addRow}
       >
-        Add object
+        <IoAddCircleSharp />
       </Button>
  
       <Button
-        style={{ backgroundColor: 'blue', color: 'white', marginRight: '10px', marginBottom: '10px'  }}
+        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px', cursor: 'pointer' }}
         onClick={handelSaveTable}
       >
-        Save Effort
+        <LuSaveAll />
       </Button>
  
       <Button
-        style={{ backgroundColor: 'blue', color: 'white', marginRight: '10px', marginBottom: '10px'  }}
+        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px', cursor: 'pointer' }}
         onClick={handleExcel}
       >
-        Export to excel
+        <FaFileExport />
       </Button>
  
-      </div>
+      <Button
+        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px', cursor: 'pointer' }}
+        onClick={() => {
+          setPopUp(true);
+        }}
+      >
+        <MdDelete />
+      </Button>
+    </div>
  
-      <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '25px', marginBottom: '10px', overflow: 'hidden' }}>
-    <Input
+    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '25px', overflow: 'hidden' }}>
+      <Input
         type="text"
         placeholder="Search Objects"
         value={searchText}
         onChange={handleSearchChange}
         onPressEnter={handleSearch}
         style={{
-            border: 'none',
-            padding: '8px 12px',
-            flexGrow: 1,
-            borderRadius: 0,
-            boxShadow: 'none',
-            outline: 'none', // Optional: Remove focus outline
+          border: 'none',
+          padding: '8px 5px',
+          flexGrow: 1,
+          borderRadius: 0,
+          boxShadow: 'none',
+          outline: 'none',
         }}
-    />
-    <button
+      />
+      <button
         onClick={handleSearch}
         style={{
-            background: 'transparent',
-            border: 'none',
-            padding: '8px 12px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 0,
-            outline: 'none', // Optional: Remove focus outline
+          background: 'transparent',
+          border: 'none',
+          padding: '8px 12px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 0,
+          outline: 'none',
         }}
-    >
+      >
         <SearchOutlined style={{ fontSize: '18px' }} />
-    </button>
-</div>
- 
+      </button>
     </div>
+  </div>
+</div>
             <div style={{maxHeight: '490px' }} className= 'tableDiv'ref={tableRef}>      
-                <Table
-                    className='review-form' columns={columns} dataSource={allData} pagination={false} loading={loading}
-                    style={{ tableLayout: 'fixed',height: "100%",width:"700px",overflowX:"scroll" }}
-                    scroll={{ y: `calc(100vh - 250px)` }}
-                />
+            <Table
+                className="review-form"
+                columns={columns}
+                dataSource={allData.map(item => ({ ...item, key: item.id }))} // Assuming 'id' is a unique identifier
+                // used array.map method here to render te page onlyafter the allData is changed
+                // if not used we can do with time outs but its not recommended
+                // if not used either we wiil get garbage values.......
+                pagination={false}
+                loading={loading}
+                style={{ tableLayout: 'fixed', height: "100%", width: "700px", overflowX: "scroll" }}
+                scroll={{ y: `calc(100vh - 250px)` }}
+            />
             </div>
+            {popUp && (
+    <Modal
+        title="Confirmation"
+        open={popUp}
+        onCancel={handleConfirmationNo}
+        footer={[
+            <Button key="no" onClick={handleConfirmationNo} danger>
+                No
+            </Button>,
+            <Button key="yes" type="primary" onClick={handleConfirmationYes}>
+                Yes
+            </Button>,
+        ]}
+    >
+        <p>Do you really want to delete these rows?</p>
+    </Modal>
+)}
         </div>
     );
 };
