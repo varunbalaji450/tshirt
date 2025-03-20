@@ -7,8 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import { TbFileExport } from "react-icons/tb";
 import { CgEnter, CgProfile } from "react-icons/cg";
 import {useSelector} from 'react-redux';
+import { IoIosHome } from "react-icons/io";
 import { FaDownload } from "react-icons/fa6";
-
+import { Tooltip } from 'antd';
+import { LuSaveAll } from "react-icons/lu";
+ 
 const ColorSwatch = ({ color, text }) => {
     return (
       <div style={{  display: 'flex', alignItems: 'center', marginRight: '20px' ,marginLeft: '20px'}}> {/* Adjust marginLeft as needed */}
@@ -68,30 +71,30 @@ const ReportTshirt = () => {
     const tempName = useSelector((state) => state.user.user);
     const [showProfile, setShowProfile] = useState(false);
     const profileRef = useRef(null);
-
+ 
     const handleClick = () => {
         setShowProfile(!showProfile);
       };
-    
+   
       const handleClickOutside = (event) => {
         if (profileRef.current && !profileRef.current.contains(event.target)) {
           setShowProfile(false);
         }
       };
-    
+   
       useEffect(() => {
         if (showProfile) {
           document.addEventListener('mousedown', handleClickOutside);
         } else {
           document.removeEventListener('mousedown', handleClickOutside);
         }
-    
+   
         return () => {
           document.removeEventListener('mousedown', handleClickOutside);
         };
       }, [showProfile]);
-    
-
+   
+ 
     const colorData = [
         { color: 'lightyellow', text: 'Preparation Phase' },
         { color: 'white', text: 'Realization / Object Development Phase' },
@@ -99,12 +102,12 @@ const ReportTshirt = () => {
         { color: 'lightgreen', text: 'Hypercare Phase' }
         // Add more colors and text here
       ];
-    
+   
     useEffect(()=>{
         setUser_name(tempName);
         console.log(tempName);
     }, [])
-
+ 
     useEffect(() => {
         let temp = [];
         axios.get(`http://127.0.0.1:8000/report_get/${projectName}/`)
@@ -122,7 +125,7 @@ const ReportTshirt = () => {
                     setMock(res.data[res.data.length - 3].iterations);
                     setColorRealize(res.data[res.data.length - 2].realize);
                     setColorLive(res.data[res.data.length - 1].live);
-                    
+                   
                     setAllTotalDays(lastRow.Total_Days);
                     setAllTotalHours(lastRow.Total_Hours);
                    
@@ -142,7 +145,7 @@ const ReportTshirt = () => {
                 console.error(err);
             });
     }, [projectName]); // Add projectName to dependency array
-
+ 
     useEffect(()=>{
         setDislayMsgText(true);
         setTimeout(() => {
@@ -168,7 +171,7 @@ const ReportTshirt = () => {
     //         `,
     //     };
     // });
-
+ 
  
     // const handleSelectChange = (index, field, value) => {
     //     setDataSource(prevDataSource => {
@@ -178,7 +181,7 @@ const ReportTshirt = () => {
     //     });
     // };
  
-
+ 
     const handleSelectChange = (index, field, value) => {
         setDataSource(prevDataSource => {
             if (value === "Remove") {
@@ -187,11 +190,11 @@ const ReportTshirt = () => {
                 console.log(newDataSource);
                 const newAllTotalDays = newDataSource.reduce((sum, item) => (sum + (item.Total_Days || 0)), 0);
                 const newAllTotalHours = newDataSource.reduce((sum, item) => (sum + (item.Total_Hours || 0)), 0);
-
+ 
                 // Update the state with the new totals:
                 setAllTotalDays(newAllTotalDays);
                 setAllTotalHours(newAllTotalHours);
-
+ 
                 return newDataSource;
             } else {
                 // Update the row if a different value is selected
@@ -204,41 +207,41 @@ const ReportTshirt = () => {
  
     const handleInputChange = (e, record, dataIndex) => {
         const newValue = e.target.value;
-        
+       
         const value = e.target.value;
-        // if (/^\d*$/.test(value)) 
+        // if (/^\d*$/.test(value))
         if (/^\d+(\.\d{0,1})?$/.test(value))
-
+ 
         { // Allow only integers
-            
+           
             setDataSource(prevDataSource => {
                 const updatedDataSource = prevDataSource.map(item => {
                     if (item.key === record.key) {
                         const updatedItem = { ...item, [dataIndex]: newValue };
-    
+   
                         let totalDays = 0;
                         for (let i = 1; i <= colCnt; i++) {
                             // const weekValue = parseInt(updatedItem[`W${i}`], 10) || 0;
                             const weekValue = parseFloat(updatedItem[`W${i}`]) || 0.0;
                             totalDays += weekValue;
                         }
-    
+   
                         updatedItem.Total_Days = totalDays;
                         updatedItem.Total_Hours = totalDays * 8;
                         return updatedItem;
                     }
                     return item;
                 });
-                
-    
+               
+   
                 // Calculate totals for all rows *after* updating the data source
                 const allTotalDays = updatedDataSource.reduce((sum, item) => sum + item.Total_Days, 0);
                 const allTotalHours = updatedDataSource.reduce((sum, item) => sum + item.Total_Hours, 0);
-            
+           
                 // You'll likely need to store these totals in state as well
                 setAllTotalDays(allTotalDays); // Assuming you have state for allTotalDays
                 setAllTotalHours(allTotalHours); // And state for allTotalHours
-    
+   
                 return updatedDataSource; // Return the updated data source
             });
         }
@@ -308,7 +311,7 @@ const ReportTshirt = () => {
     for (let i = 1; i <= colCnt; i++) {
         const isFirstThree = i < colorrealize;
         const isLastThree = i >= colorlive; // Calculate dynamically
-    
+   
         middleColumns.push({
             title: `W${i}`,
             dataIndex: `W${i}`,
@@ -387,7 +390,7 @@ const ReportTshirt = () => {
             setLive(value);
         }
     };
-
+ 
     const handleMockBox = (e) => {
         const value = e.target.value;
         if (/^\d*$/.test(value)) { // Allow only integers
@@ -401,10 +404,10 @@ const ReportTshirt = () => {
         console.log(realize);
         console.log(live);
         console.log(mock);
-
+ 
         if (!txt || !realize || !live || !mock) {
             // setError('All fields are required.'); // Set error messag
-
+ 
             message.warning('Please Fill all the Fields!', 1);
             return; // Stop submission
         }
@@ -432,7 +435,7 @@ const ReportTshirt = () => {
                 return;
             }
         }
-
+ 
         let val = {
             "project_name": projectName,
             "weeks": parseInt(txt, 10),
@@ -444,7 +447,7 @@ const ReportTshirt = () => {
             .then(res => {
                 console.log(res);
                 console.log("Successfully created the dynamic table");
-                
+               
                 if (res.data && res.data.length > 0) {
                     temp = res.data;
                     console.log(res);
@@ -471,31 +474,31 @@ const ReportTshirt = () => {
                     console.log("No data or empty data received.");
                     setDataSource([]);
                 }
-
-
+ 
+ 
             })
             .catch(err => {
                 console.error('outer axios error');
                 console.error(err);
                 return;
             });
-        
+       
     };
     const handelSaveReport = () => {
        
         console.log("final temp");
-
+ 
         console.log(totalEfforts);
-
+ 
         let diff = (Math.abs(totalEfforts - allTotalDays)/totalEfforts)*100
         console.log(diff)
-
+ 
         if(diff > 25)
         {
             setPopUp(true);
         }else{
             setPopUp(false);
-            
+           
             let temp = {
                 Yash_Consultant: null,
                 Role: null,
@@ -503,24 +506,24 @@ const ReportTshirt = () => {
                 Total_Days: allTotalDays,
                 Total_Hours: allTotalHours,
             };
-        
+       
             for (let i = 1; i <= colCnt; i++) {
                 temp[`W${i}`] = null;
             }
-        
-    
+       
+   
              const dataWithoutKeys = dataSource.map(item => {
                 const newItem = { ...item }; // Create a copy
                 delete newItem.key; // Remove the key property
                 return newItem;
             });
-        
+       
             delete temp.key; // Remove key from temp object
-        
+       
             let finalTemp = [...dataWithoutKeys, temp]; // Use dataWithoutKeys
-        
+       
             console.log(finalTemp);
-        
+       
             axios.put(`http://127.0.0.1:8000/report_update/${projectName}/`, finalTemp)
                 .then(res => {
                     console.log('sent data');
@@ -528,36 +531,36 @@ const ReportTshirt = () => {
                 .catch(err => {
                     console.error(err);
                 });
-
+ 
             // setMsgText('Saved Successfully');
             message.success('Saved successfully!', 1);
-
-
+ 
+ 
         }
-
-    
+ 
+   
         // Remove key fields from dataSource and temp
        
     };
-
-
-
+ 
+ 
+ 
     const handleExcel = async () => {
         try {
-            // const saveResponse = await axios.post(`http://127.0.0.1:8000/temp_save/`, 
+            // const saveResponse = await axios.post(`http://127.0.0.1:8000/temp_save/`,
             // inscopeData.length>0?inscopeData:outscopeData.length>0 ? outscopeData:masterData);
             // console.log('Temp saved Successfully');
             // console.log(saveResponse.data);
-    
-            const downloadResponse = await axios.post(`http://127.0.0.1:8000/report_to_excel/`, 
-                dataSource, 
+   
+            const downloadResponse = await axios.post(`http://127.0.0.1:8000/report_to_excel/`,
+                dataSource,
             {
                 responseType: 'blob', // C rucial: Get response as a blob
             });
-    
+   
             console.log('Excel downloaded Successfully');
             console.log(downloadResponse);
-    
+   
             const blob = new Blob([downloadResponse.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -567,10 +570,10 @@ const ReportTshirt = () => {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url); // Release the blob URL (important!)
-    
+   
         } catch (error) {
             console.error("Error:", error);
-    
+   
             if (error.response) {
                 console.error("Response data:", error.response.data);
                 console.error("Response status:", error.response.status);
@@ -585,8 +588,8 @@ const ReportTshirt = () => {
     const handleConfirmationYes = ()=>{
         // ....... api Callbacks.
         setPopUp(false);
-
-
+ 
+ 
         let temp = {
             Yash_Consultant: null,
             Role: null,
@@ -594,24 +597,24 @@ const ReportTshirt = () => {
             Total_Days: allTotalDays,
             Total_Hours: allTotalHours,
         };
-    
+   
         for (let i = 1; i <= colCnt; i++) {
             temp[`W${i}`] = null;
         }
-    
-
+   
+ 
          const dataWithoutKeys = dataSource.map(item => {
             const newItem = { ...item }; // Create a copy
             delete newItem.key; // Remove the key property
             return newItem;
         });
-    
+   
         delete temp.key; // Remove key from temp object
-    
+   
         let finalTemp = [...dataWithoutKeys, temp]; // Use dataWithoutKeys
-    
+   
         console.log(finalTemp);
-    
+   
         axios.put(`http://127.0.0.1:8000/report_update/${projectName}/`, finalTemp)
             .then(res => {
                 console.log('sent data');
@@ -622,20 +625,30 @@ const ReportTshirt = () => {
         // success msg
         // setMsgText('Saved Successfully');
         message.success('Saved successfully!', 1);
-        
+       
     }
-
+ 
     const handleConfirmationNo = ()=>{
         setPopUp(false);
     }
-
+    const boxStyle = {
+        backgroundColor: 'lightgray',
+        padding: '8px 12px', // Adjusted padding for centering
+        borderRadius: '5px',
+        marginBottom: '5px',
+        display: 'inline-block',
+        fontWeight: 'bold',
+        textAlign: 'center', // Center the text horizontally
+        minWidth: '45px', // Set a minimum width for consistent box size
+      };
+ 
  
     return (
         <>
-        <div style={{ 
+        <div style={{
             // display: 'flex', flexDirection: 'column',justifyContent: 'space-between'  ,alignItems: 'center' ,
             gap: '5px', padding: '15px' }}>
-            
+           
         <div style={{ marginBottom: '20px', marginLeft: '50px',
              display: 'flex', flexDirection: 'column',alignItems: 'center' }}>
                 <div style={{ position: 'absolute', left: '25px',alignContent:'center', marginTop:'6px'  }}>                
@@ -652,10 +665,10 @@ const ReportTshirt = () => {
                     </div>
                 </div>
             </div>
-                
-            
-
-            
+               
+           
+ 
+           
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}> {/* Key change: flexWrap: 'nowrap' */}
                 <label style={{ marginRight: '10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                     Project TimeLine Duration(In weeks):
@@ -670,10 +683,10 @@ const ReportTshirt = () => {
                         padding: '8px',
                         border: '1px solid #ccc',
                         borderRadius: '4px',
-                        minWidth: '60px', // Or adjust as needed
+                        maxWidth: '50px', // Or adjust as needed
                     }}
                 />
-
+ 
                 <label style={{ marginRight: '10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                     Realize Phase Starts from(In weeks):
                 </label>
@@ -687,11 +700,11 @@ const ReportTshirt = () => {
                         padding: '8px',
                         border: '1px solid #ccc',
                         borderRadius: '4px',
-                        minWidth: '60px', // Or adjust as needed
+                        maxWidth: '50px', // Or adjust as needed
                     }}
-                    // disabled = 
+                    // disabled =
                 />
-
+ 
                 <label style={{ marginRight: '10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                     Go Live Week At:
                 </label>
@@ -705,10 +718,10 @@ const ReportTshirt = () => {
                         padding: '8px',
                         border: '1px solid #ccc',
                         borderRadius: '4px',
-                        minWidth: '60px', // Or adjust as needed
+                        maxWidth: '50px', // Or adjust as needed
                     }}
                 />
-
+ 
                 <label style={{ marginRight: '10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                     Mock Iterations:
                 </label>
@@ -722,17 +735,10 @@ const ReportTshirt = () => {
                         padding: '8px',
                         border: '1px solid #ccc',
                         borderRadius: '4px',
-                        minWidth: '40px', // Or adjust as needed
+                        maxWidth: '50px', // Or adjust as needed
                     }}
                 />
-                </div>
-                <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center',
-      marginTop: '20px', 
-      marginBottom: '20px'}} >
-                    <Button
+                 <Button
                         onClick={handelButtonSubmit}
                         type="primary"
                         style={{
@@ -744,16 +750,66 @@ const ReportTshirt = () => {
                             cursor: 'pointer',
                             whiteSpace: 'nowrap',
                             marginRight: '10px',
+                            marginLeft : '30px'
                         }}
                     >
                         Submit
                     </Button>
-
+                </div>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'right',
+                    // justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: '10px',
+                    marginBottom: '10px',
+                    marginRight : '8px'}} >
+                        <Button
+                        onClick={()=>{
+                            navigate('/')
+                        }}
+                        type="primary"
+                        style={{
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            padding: '8px 16px',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            marginRight: '15px',
+                        }}
+                    >
+                        <Tooltip title="Home">
+                        <IoIosHome/>
+                        </Tooltip>
+                    </Button>
+                   
+                    <div >
+                    <Tooltip title="save">
+                        <Button onClick={handelSaveReport}
+                          style={{
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            padding: '8px 16px',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            marginRight: '15px',
+                        }}
+                         >
+                        <LuSaveAll />
+                        </Button>
+                    </Tooltip>
+                    </div>
+                   
+ 
                     <Button
                         onClick={handleExcel}
                         type="primary"
                         style={{
-                            // backgroundColor: '#4CAF50',
+                            backgroundColor: '#4CAF50',
                             color: 'white',
                             padding: '8px 16px',
                             border: 'none',
@@ -764,17 +820,20 @@ const ReportTshirt = () => {
                                 backgroundColor: '#45a049',
                                 content : 'Hii' // Example hover color
                             }
-                            
+                           
                         }}
                     >
+                        <Tooltip title="Export to Excel">
+ 
                         <FaDownload />
                         {/* Export to Excel */}
                         {/* <TbFileExport /> */}
+                        </Tooltip>
                     </Button>
                 </div>
             {error && <p style={{ color: 'red' }}>{error}</p>}
-
-
+ 
+ 
             <Table
                 className="custom-table report-table"
                 pagination={false}
@@ -787,68 +846,26 @@ const ReportTshirt = () => {
                 }}
             />
  
-            {/* <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                <>
-                Total Days (All Rows): {allTotalDays}
-                <br />
-                Total Hours (All Rows): {allTotalHours}
-                </>
-                <>
-                <Button onClick={handelSaveReport} style={{width:'70px', height: '50px', background: 'blue', color:'white'}}>Save</Button>
-                </>
-            </div> */}
-
-            {dataSource.length!==0 &&(<div 
+            {dataSource.length!==0 &&(<div
             style={{ display: 'flex',
-                justifyContent: 'space-between', 
+                justifyContent: 'space-between',
                 //  alignItems: 'center'
                 }}
                 >
-                <div style={{marginLeft: '50%', marginRight: '369px'}}> {/* Button container */}
-                        <Button onClick={handelSaveReport} style={{ width: '70px', height: '50px', background: 'blue', color: 'white' }}>
-                            Save
-                        </Button>
+               
+                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', marginLeft:'1075px' }}>
+                    <div style={{ marginRight: '48px', display: 'flex' }}>
+                        <div style={{ display: 'flex' }}>
+                            <div style={boxStyle}>{allTotalDays}</div>
+                            <div style={{ ...boxStyle, marginLeft: '35px' }}>{allTotalHours}</div>
+                        </div>
+                        </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end' }}>
-                {/* <div style={{marginRight: '145px'}}>
-                    {/* Total Days (All Rows):  
-                    {allTotalDays}
-                </div>
-                <div>
-                    {/* Total Hours (All Rows):  
-                    {allTotalHours}
-                </div> */}
-                <div style={{ marginRight: '55px', display: 'flex' }}> {/* Added inline-block */}
-                <div style={{
-                    backgroundColor: 'lightgray', // Grey background
-                    padding: '8px',            // Add some padding
-                    borderRadius: '5px',        // Rounded corners
-                    marginBottom: '5px',        // Space between boxes
-                    display: 'inline-block' ,
-                    marginRight: '55px',
-                    fontWeight: 'bold'
-                    // width: '50px'
-                    // Ensures each box takes only necessary width
-                }}>
-                    {allTotalDays}
-                </div>
-                <div style={{
-                    backgroundColor: 'lightgray', // Grey background
-                    padding: '8px',            // Add some padding
-                    borderRadius: '5px',        // Rounded corners
-                    display: 'inline-block' , 
-                    fontWeight: 'bold'     // Ensures each box takes only necessary width
-                    //  width: '50px'
-                }}>
-                    {allTotalHours}
-                </div>
-            </div>
-            </div>
-                
+               
             </div>
             )}
-
-
+ 
+ 
             {popUp && (
                     <div
                         style={{
@@ -874,10 +891,10 @@ const ReportTshirt = () => {
                             </button>
                         </div>
                     </div>
-                )}   
-
-    
-
+                )}  
+ 
+   
+ 
         </div>
         {dataSource.length!==0 &&(<div style={{ display: 'flex' }}> {/* Column for vertical stacking */}
                 {colorData.map((item, index) => (
@@ -890,3 +907,4 @@ const ReportTshirt = () => {
 };
  
 export default ReportTshirt;
+ 

@@ -9,10 +9,11 @@ import debounce from 'lodash/debounce';
 import { constant } from 'lodash';
 import { IoAddCircleSharp } from "react-icons/io5";
 import { LuSaveAll } from "react-icons/lu";
-import { FaFileExport } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
 import { IoIosHome } from "react-icons/io";
- 
+import {EditableField} from './EditableCell';
+import { Tooltip } from 'antd';
  
 const { Option } = Select;
  
@@ -35,6 +36,7 @@ const Tshirt = () => {
     const [searchData, setSearchData] = useState([]);
     const [selectedRows, setSelectedRows] = useState([]);
     const [popUp, setPopUp] = useState(false);
+    const [hoveredButton, setHoveredButton] = useState(null);
     const tableRef = useRef(null);
     useEffect(() => {
         setSelectedProject(projectName);
@@ -63,6 +65,7 @@ const Tshirt = () => {
         }
     }, [masterData, searchData, inscopeData, outscopeData]); // Correct dependency array
  
+   
     const handelInscopeData = () => {
         if (inscopeBool) {
             setInscopeBool(false);
@@ -120,36 +123,39 @@ const Tshirt = () => {
         dataIndex: 'object',
         key: 'object',
         align: 'center',
-        // width: '120px',
-        render: (text, record, index) => (
-            <Input
-                // style={{ width: "100%" }}
-                value={record.object || ''} // Use record.object instead of defaultValue
-                onChange={(e) => handleInputChange(index, 'object', e.target.value)}
-            />
-        ),
+        width: '235px',
+        render: (_,record,index) => (  
+            <EditableField  
+                value={record?.object}  
+                onUpdate={(newValue) => handleInputChange(index, 'object', newValue)}
+                // disabled={editable}
+            />  
+        )  
     },
     {
         title: 'module',
         dataIndex: 'module',
         key: 'module',
         align: 'center',
-        render: (text, record, index) => (
-            <Input
-                value={record.module || ''} // Use record.module instead of defaultValue
-                onChange={(e) => handleInputChange(index, 'module', e.target.value)}
-            />
-        ),
+        width : '80px',
+        render: (_,record,index) => (  
+            <EditableField  
+                value={record?.module}  
+                onUpdate={(newValue) => handleInputChange(index, 'module', newValue)}
+                // disabled={editable}
+            />  
+        )  
     },
     {
         title: 'Data Object Type',
         dataIndex: 'data_object_type',
         key: 'data_object_type',
         align: 'center',
+        width : '170px',
         render: (text, record, index) => (
             <Select
                 value={record.data_object_type} // use value instead of defaultValue
-                style={{ width: 120 }}
+                style={{ width: 150 }}
                 onChange={(value) => handleSelectChange(index, 'data_object_type', value)}
             >
                 <Option value="Master Data">Master Data</Option>
@@ -162,6 +168,7 @@ const Tshirt = () => {
         dataIndex: 'transformation_complexity',
         key: 'transformation_complexity',
         align: 'center',
+        width : '170px',
         render: (text, record, index) => (
             <Select
                 value={record.transformation_complexity} // use value instead of defaultValue
@@ -179,6 +186,7 @@ const Tshirt = () => {
         dataIndex: 'load_complexity',
         key: 'load_complexity',
         align: 'center',
+        width : '170px',
         render: (text, record, index) => (
             <Select
                 value={record.load_complexity} // use value instead of defaultValue
@@ -197,6 +205,7 @@ const Tshirt = () => {
         dataIndex: 'source_complexity',
         key: 'source_complexity',
         align: 'center',
+        width : '170px',
         render: (text, record, index) => (
             <Select
                 value={record.source_complexity} // use value instead of defaultValue
@@ -218,6 +227,7 @@ const Tshirt = () => {
                         padding: 0,
                         textDecoration: 'none',
                         border: 'none',
+                        color : inscopeBool?'yellow':'#00ffcc',
                         backgroundColor: 'transparent',
                     }}
                     onClick={handelInscopeData}
@@ -230,6 +240,7 @@ const Tshirt = () => {
                         padding: 0,
                         textDecoration: 'none',
                         border: 'none',
+                        color : outscopeBool?'yellow':'#00ffcc',
                         backgroundColor: 'transparent',
                     }}
                     onClick={handelOutscopeData}
@@ -241,6 +252,7 @@ const Tshirt = () => {
         dataIndex: 'scope',
         key: 'scope',
         align: 'center',
+        width : '170px',
         render: (text, record, index) => (
             <Select
                 value={record.scope} // use value instead of defaultValue
@@ -257,60 +269,79 @@ const Tshirt = () => {
         dataIndex: 'object_development',
         key: 'object_development',
         align: 'center',
+        width : '170px',
     },
     {
         title: 'Iteration 1 - Data Loading',
         dataIndex: 'iteration_1_data_loading',
         key: 'iteration_1_data_loading',
         align: 'center',
+        width : '170px',
     },
     {
         title: 'Defects/Changes after loads based on the feedback',
         dataIndex: 'iteration_1_defects',
         key: 'iteration_1_defects',
         align: 'center',
+        width : '220px',
     },
     {
         title: 'Iteration 2 (Data loading to System 2)',
         dataIndex: 'iteration_2_data_loading',
         key: 'iteration_2_data_loading',
         align: 'center',
+        width : '170px',
     },
     {
         title: 'Defects/Changes after loads based on the feedback',
         dataIndex: 'iteration_2_defects',
         key: 'iteration_2_defects',
         align: 'center',
+        width : '220px',
     },
     {  
         title: 'Iteration 3 (Data loading to System 3)',
         dataIndex: 'iteration_3_data_loading',
         key: 'iteration_3_data_loading',
         align: 'center',
+        width : '170px',
     },
     {
         title: 'Defects/Changes after loads based on the feedback',
         dataIndex: 'iteration_3_defects',
         key: 'iteration_3_defects',
         align: 'center',
+        width : '220px',
     },
     {
         title: 'PRD Data Loads',
         dataIndex: 'production_data_loads',
         key: 'production_data_loads',
         align: 'center',
+        width : '130px',
     },
     {
         title: 'Total',
         dataIndex: 'total',
         key: 'total',
         align: 'center',
+        width : '170px',
     },
 ];
     // NO CHANGE
     const handelSaveTable = ()=>{
         // saving project int db
         console.log(selectedProject);
+       
+        for (let s of masterData) {
+            if(s.object.trim().length>0)
+            {}
+            else
+            {
+                message.warning('Cannot save Empty Objects', 2);
+                return;
+            }
+        }
        
         console.log(masterData);
         try{
@@ -365,9 +396,23 @@ const Tshirt = () => {
         }
     };
     const handleInputChange = (index, field, value) => {
+               
+        // console.log(allData);
+        // console.log(" dsjfsalidfiwrlfvwlfcw  ");
+ 
+        // console.log(masterData);
+ 
+        console.log(allData[index]);  
+        console.log(field);
+        console.log(value);
+       
+ 
         setAllData(prevAllData => {
+                     
             const newData = [...prevAllData];
-            newData[index] = { ...newData[index], [field]: value };
+            newData[index] = { ...newData[index], [field]: value };      
+            console.log(newData);
+                 
             return newData;
         });
    
@@ -376,6 +421,18 @@ const Tshirt = () => {
             newData[index] = { ...newData[index], [field]: value };
             return newData;
         });
+ 
+        // console.log(allData[index]);
+        // setTimeout(() => {
+        //     console.log(allData);
+        // console.log(" dsjfsalidfiwrlfvwlfcw  ");
+       
+        // console.log(masterData);    
+        // }, 1000);
+       
+       
+       
+       
     };
    
     const handleSelectChange = async (index, field, value) => {
@@ -543,8 +600,6 @@ const Tshirt = () => {
                 setMasterData([]);
                 setAllData([]);
                 // setInscopeData([]);
-                // setOutscopeData([]);
-                // setSearchData([]);
                 let temp = res.data;
                 console.log(temp);
                
@@ -644,6 +699,7 @@ const Tshirt = () => {
     const homeClick=()=>{
         navigate(`/`);
     };
+ 
     const handleDeleteRows = () => {
         setAllData(prevAllData =>
             prevAllData.filter(ele => !selectedRows.some(row => row.id === ele.id))
@@ -651,9 +707,33 @@ const Tshirt = () => {
         setMasterData(prevMasterData =>
             prevMasterData.filter(ele => !selectedRows.some(row => row.id === ele.id))
         );
+       
+        let objects = [];
+        for (let s of selectedRows) {
+        objects.push(s.object); // Access the 'object' property of each element 's'
+        }
+        console.log(objects);
+ 
+ 
+        try{
+            axios.put(`http://127.0.0.1:8000/project_data_delete/${selectedProject}`,objects).then((res)=>{
+              console.log('deleted successfull');
+              console.log(res);          
+            }).catch(err=>{
+              console.log(err);          
+            })
+          }catch(err){
+              console.log(err);
+          }
+ 
+ 
+ 
         setSelectedRows([]);
+ 
         setPopUp(false); // Clear selected rows after deletion
     };
+ 
+ 
     const handleConfirmationYes = ()=>{
         handleDeleteRows();
        
@@ -662,6 +742,33 @@ const Tshirt = () => {
         setPopUp(false);
         setSelectedRows([]);
     }
+    const buttonData = [
+        {
+          icon: <IoIosHome />,
+          onClick: homeClick,
+          tooltip: 'Home',
+        },
+        {
+          icon: <IoAddCircleSharp />,
+          onClick: addRow,
+          tooltip: 'Add Row',
+        },
+        {
+          icon: <LuSaveAll />,
+          onClick: handelSaveTable,
+          tooltip: 'Save Table',
+        },
+        {
+          icon: <FaDownload />,
+          onClick: handleExcel,
+          tooltip: 'Download Excel',
+        },
+        {
+          icon: <MdDelete />,
+          onClick: () => setPopUp(true),
+          tooltip: 'Delete',
+        },
+      ];
     return (
         <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
             <div style={{ marginBottom: '20px', display: 'inline',textAlign:'center'}}>
@@ -669,7 +776,7 @@ const Tshirt = () => {
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz6s3WZNZAaKEXsBVRXuMDagabISvp0gqDRw&s"
                     style={{width: '100px', height: '50px', marginRight:'10px',cursor: 'pointer' }}
                     onClick={()=>{
-                        navigate(`/home`);
+                        navigate(`/`);
                     }}
                     ></img>
                 </div>
@@ -677,99 +784,94 @@ const Tshirt = () => {
                 <h1>Data Migration - Effort and Estimation Report</h1>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-  {/* Select on the left */}
-  <Select
-    style={{ width: 200, marginBottom: '10px' }}
-    placeholder="Select Project"
-    onChange={handleProjectChange}
-    value={selectedProject}
-  >
-    {projects && projects.length > 0 ? (
-      projects.map((element) => (
-        <Option key={element.project_name} value={element.project_name}>
-          {element.project_name}
-        </Option>
-      ))
-    ) : (
-      <Option value={null}>No projects available</Option>
-    )}
-  </Select>
+                {/* Select on the left */}
+               
+                <div style={{display: 'flex'}}><label style={{ fontWeight: "bold" }}>ProjectName : </label>
+                    <Select
+                        style={{ width: 200, marginBottom: '10px' }}
+                        placeholder="Select Project"
+                        onChange={handleProjectChange}
+                        value={selectedProject}
+                    >
+                        {projects && projects.length > 0 ? (
+                        projects.map((element) => (
+                            <Option key={element.project_name} value={element.project_name}>
+                            {element.project_name}
+                            </Option>
+                        ))
+                        ) : (
+                        <Option value={null}>No projects available</Option>
+                        )}
+                    </Select>
+                </div>
  
-  {/* Right side container for buttons and search */}
-  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end'}}>
-    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1px' }}>
-      <Button
-        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px' }}
-        onClick={homeClick}
-      >
-        <IoIosHome />
-      </Button>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1px' }}>
+        {buttonData.map((button, index) => (
+          <div
+            key={index}
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setHoveredButton(index)}
+            onMouseLeave={() => setHoveredButton(null)}
+          >
+            <Button
+              style={{
+                color: 'white',
+                backgroundColor: 'blue',
+                marginRight: '10px',
+                cursor: 'pointer',
+              }}
+              onClick={button.onClick}
+            >
+                <Tooltip title={button.tooltip}>
+    {/* <span>Tooltip will show on mouse enter.</span> */}
+              {button.icon}
+                </Tooltip>
+            </Button>
+          </div>
+        ))}
  
-      <Button
-        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px' }}
-        onClick={addRow}
-      >
-        <IoAddCircleSharp />
-      </Button>
- 
-      <Button
-        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px', cursor: 'pointer' }}
-        onClick={handelSaveTable}
-      >
-        <LuSaveAll />
-      </Button>
- 
-      <Button
-        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px', cursor: 'pointer' }}
-        onClick={handleExcel}
-      >
-        <FaFileExport />
-      </Button>
- 
-      <Button
-        style={{ color: 'white', backgroundColor: 'blue', marginRight: '10px', cursor: 'pointer' }}
-        onClick={() => {
-          setPopUp(true);
-        }}
-      >
-        <MdDelete />
-      </Button>
-    </div>
- 
-    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ccc', borderRadius: '25px', overflow: 'hidden' }}>
-      <Input
-        type="text"
-        placeholder="Search Objects"
-        value={searchText}
-        onChange={handleSearchChange}
-        onPressEnter={handleSearch}
+      <div
         style={{
-          border: 'none',
-          padding: '8px 5px',
-          flexGrow: 1,
-          borderRadius: 0,
-          boxShadow: 'none',
-          outline: 'none',
-        }}
-      />
-      <button
-        onClick={handleSearch}
-        style={{
-          background: 'transparent',
-          border: 'none',
-          padding: '8px 12px',
-          cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: 0,
-          outline: 'none',
+          border: '1px solid #ccc',
+          borderRadius: '25px',
+          overflow: 'hidden',
         }}
       >
-        <SearchOutlined style={{ fontSize: '18px' }} />
-      </button>
+        <Input
+          type="text"
+          placeholder="Search Objects"
+          value={searchText}
+          onChange={handleSearchChange}
+          onPressEnter={handleSearch}
+          style={{
+            border: 'none',
+            padding: '8px 5px',
+            flexGrow: 1,
+            borderRadius: 0,
+            boxShadow: 'none',
+            outline: 'none',
+          }}
+        />
+        <button
+          onClick={handleSearch}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            padding: '8px 12px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 0,
+            outline: 'none',
+          }}
+        >
+          <SearchOutlined style={{ fontSize: '18px' }} />
+        </button>
+      </div>
     </div>
-  </div>
 </div>
             <div style={{maxHeight: '490px' }} className= 'tableDiv'ref={tableRef}>      
             <Table
@@ -807,4 +909,5 @@ const Tshirt = () => {
 };
  
 export default Tshirt;
+ 
  

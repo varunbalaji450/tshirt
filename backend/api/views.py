@@ -412,11 +412,24 @@ def project_data_save(request,pname):
 
 
     data = request.data
+    obj = []
     for d in data:
         d['project_name'] = pname
+        obj.append(d['object'])
+
+    
+    if project_efforts.objects.filter(project_name=pname):
+        prj =project_efforts.objects.filter(project_name=pname)
+        for temp in prj:
+            if temp.object in obj:
+                pass
+            else:
+                temp.delete()
+
 
     # print(data)
     # print(data)
+
 
     
     if project_efforts.objects.filter(project_name=pname):
@@ -437,6 +450,7 @@ def project_data_save(request,pname):
                 if project.is_valid():
                     project.save()
                 else:
+                    print(project.errors)
                     return Response(status=status.HTTP_409_CONFLICT)
             
         return Response(status=status.HTTP_200_OK)
@@ -1010,14 +1024,13 @@ def report_update(request,pname):
 @api_view(['PUT'])
 def project_data_delete(request,pname):
     obj = request.data
+    print(obj)
     for i in obj:
-        objs = project_efforts.objects.filter(project_name = pname , object = i['objects'])
+        objs = project_efforts.objects.filter(project_name = pname , object = i)
         if objs:
-            objecs = project_efforts.objects.get(project_name = pname , object = i['objects'])
+            objecs = project_efforts.objects.get(project_name = pname , object = i)
             if objecs:
                 objecs.delete()
     
     
     return Response(status=status.HTTP_202_ACCEPTED)
-
-
