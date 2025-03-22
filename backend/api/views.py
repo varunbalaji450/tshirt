@@ -1034,3 +1034,5 @@ def project_data_delete(request,pname):
     
     
     return Response(status=status.HTTP_202_ACCEPTED)
+
+

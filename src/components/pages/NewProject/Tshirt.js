@@ -15,6 +15,7 @@ import { IoIosHome } from "react-icons/io";
 import {EditableField} from './EditableCell';
 import { Tooltip } from 'antd';
  
+ 
 const { Option } = Select;
  
 const Tshirt = () => {
@@ -37,6 +38,7 @@ const Tshirt = () => {
     const [selectedRows, setSelectedRows] = useState([]);
     const [popUp, setPopUp] = useState(false);
     const [hoveredButton, setHoveredButton] = useState(null);
+    const [uniqId, setUniqId] = useState(1000000000000);
     const tableRef = useRef(null);
     useEffect(() => {
         setSelectedProject(projectName);
@@ -127,7 +129,7 @@ const Tshirt = () => {
         render: (_,record,index) => (  
             <EditableField  
                 value={record?.object}  
-                onUpdate={(newValue) => handleInputChange(index, 'object', newValue)}
+                onUpdate={(newValue) => handleInputChange(record?.id, 'object', newValue)}
                 // disabled={editable}
             />  
         )  
@@ -141,7 +143,7 @@ const Tshirt = () => {
         render: (_,record,index) => (  
             <EditableField  
                 value={record?.module}  
-                onUpdate={(newValue) => handleInputChange(index, 'module', newValue)}
+                onUpdate={(newValue) => handleInputChange(record?.id, 'module', newValue)}
                 // disabled={editable}
             />  
         )  
@@ -156,7 +158,7 @@ const Tshirt = () => {
             <Select
                 value={record.data_object_type} // use value instead of defaultValue
                 style={{ width: 150 }}
-                onChange={(value) => handleSelectChange(index, 'data_object_type', value)}
+                onChange={(value) => handleSelectChange(record?.id, 'data_object_type', value)}
             >
                 <Option value="Master Data">Master Data</Option>
                 <Option value="Transactional data">Transactional data</Option>
@@ -173,7 +175,7 @@ const Tshirt = () => {
             <Select
                 value={record.transformation_complexity} // use value instead of defaultValue
                 style={{ width: 120 }}
-                onChange={(value) => handleSelectChange(index, 'transformation_complexity', value)}
+                onChange={(value) => handleSelectChange(record?.id, 'transformation_complexity', value)}
             >
                 <Option value="Medium">Medium</Option>
                 <Option value="Low">Low</Option>
@@ -191,7 +193,7 @@ const Tshirt = () => {
             <Select
                 value={record.load_complexity} // use value instead of defaultValue
                 style={{ width: 120 }}
-                onChange={(value) => handleSelectChange(index, 'load_complexity', value)}
+                onChange={(value) => handleSelectChange(record?.id, 'load_complexity', value)}
             >
                 <Option value="0-10000">0 - 10000</Option>
                 <Option value="10001-50000">10001 - 50000</Option>
@@ -210,7 +212,7 @@ const Tshirt = () => {
             <Select
                 value={record.source_complexity} // use value instead of defaultValue
                 style={{ width: 120 }}
-                onChange={(value) => handleSelectChange(index, 'source_complexity', value)}
+                onChange={(value) => handleSelectChange(record?.id, 'source_complexity', value)}
             >
                 <Option value="Low">Low</Option>
                 <Option value="Medium">Medium</Option>
@@ -257,7 +259,7 @@ const Tshirt = () => {
             <Select
                 value={record.scope} // use value instead of defaultValue
                 style={{ width: 120 }}
-                onChange={(value) => handleSelectChange(index, 'scope', value)}
+                onChange={(value) => handleSelectChange(record?.id, 'scope', value)}
             >
                 <Option value="InScope">InScope</Option>
                 <Option value="OutScope">OutScope</Option>
@@ -395,120 +397,225 @@ const Tshirt = () => {
             }
         }
     };
-    const handleInputChange = (index, field, value) => {
+    // const handleInputChange = (index, field, value) => {
                
-        // console.log(allData);
-        // console.log(" dsjfsalidfiwrlfvwlfcw  ");
+    //     // console.log(allData);
+    //     // console.log(" dsjfsalidfiwrlfvwlfcw  ");
  
-        // console.log(masterData);
+    //     // console.log(masterData);
  
-        console.log(allData[index]);  
-        console.log(field);
-        console.log(value);
+    //     console.log(allData[index]);  
+    //     console.log(field);
+    //     console.log(value);
        
  
-        setAllData(prevAllData => {
+    //     setAllData(prevAllData => {
                      
-            const newData = [...prevAllData];
-            newData[index] = { ...newData[index], [field]: value };      
-            console.log(newData);
+    //         const newData = [...prevAllData];
+    //         newData[index] = { ...newData[index], [field]: value };      
+    //         console.log(newData);
                  
-            return newData;
+    //         return newData;
+    //     });
+   
+    //     setMasterData(prevMasterData => {
+    //         const newData = [...prevMasterData];
+    //         newData[index] = { ...newData[index], [field]: value };
+    //         return newData;
+    //     });
+ 
+    //     // console.log(allData[index]);
+    //     // setTimeout(() => {
+    //     //     console.log(allData);
+    //     // console.log(" dsjfsalidfiwrlfvwlfcw  ");
+       
+    //     // console.log(masterData);    
+    //     // }, 1000);
+       
+       
+       
+       
+    // };
+   
+ 
+    const handleInputChange = (id, field, value) => {
+        setAllData(prevAllData => {
+            return prevAllData.map(item => {
+                if (item.id === id) {
+                    return { ...item, [field]: value };
+                }
+                return item;
+            });
         });
    
         setMasterData(prevMasterData => {
-            const newData = [...prevMasterData];
-            newData[index] = { ...newData[index], [field]: value };
-            return newData;
+            return prevMasterData.map(item => {
+                if (item.id === id) {
+                    return { ...item, [field]: value };
+                }
+                return item;
+            });
         });
- 
-        // console.log(allData[index]);
-        // setTimeout(() => {
-        //     console.log(allData);
-        // console.log(" dsjfsalidfiwrlfvwlfcw  ");
-       
-        // console.log(masterData);    
-        // }, 1000);
-       
-       
-       
-       
     };
+    // const handleSelectChange = async (index, field, value) => {
+    //     console.log("hello world");
    
-    const handleSelectChange = async (index, field, value) => {
-        console.log("hello world");
+    //     setLoading(true);
+   
+    //     const updatedRow = { ...allData[index], [field]: value };
+    //     console.log("updated row");
+    //     console.log(updatedRow);
+   
+    //     const requiredFieldsFilled = checkRequiredFields(updatedRow);
+   
+    //     if (requiredFieldsFilled) {
+    //         try {
+    //             const { transformation_complexity, load_complexity, source_complexity, data_object_type, scope } = updatedRow;
+   
+    //             setAllData(prevAllData => {
+    //                 const newData = [...prevAllData];
+    //                 newData[index] = { ...newData[index], scope };
+    //                 return newData;
+    //             });
+   
+    //             setMasterData(prevMasterData => {
+    //                 const newData = [...prevMasterData];
+    //                 newData[index] = { ...newData[index], scope };
+    //                 return newData;
+    //             });
+   
+    //             if (scope.toLowerCase() === "inscope") {
+    //                 const response = await axios.get(
+    //                     `http://127.0.0.1:8000/estimated_time/${transformation_complexity}/${load_complexity}/${source_complexity}/`,
+    //                     {params: updatedRow}
+    //                 );
+   
+    //                 const finalData = {
+    //                     id: allData[index]?.id,
+    //                     object: allData[index]?.object,
+    //                     module: allData[index]?.module,
+    //                     data_object_type,
+    //                     transformation_complexity: response?.data[0]?.transformation_complexity,
+    //                     load_complexity: response?.data[0]?.load_complexity,
+    //                     source_complexity: response?.data[0]?.source_complexity,
+    //                     scope,
+    //                     object_development: response?.data[0]?.object_development,
+    //                     iteration_1_data_loading: response?.data[0]?.iteration_1_data_loading,
+    //                     iteration_1_defects: response?.data[0]?.iteration_1_defects,
+    //                     iteration_2_data_loading: response?.data[0]?.iteration_2_data_loading,
+    //                     iteration_2_defects: response?.data[0]?.iteration_2_defects,
+    //                     iteration_3_data_loading: response?.data[0]?.iteration_3_data_loading,
+    //                     iteration_3_defects: response?.data[0]?.iteration_3_defects,
+    //                     production_data_loads: response?.data[0]?.production_data_loads,
+    //                     total: response?.data[0]?.total,
+    //                 };
+    //                 console.log(finalData);
+   
+    //                 setAllData(prevAllData => {
+    //                     const newData = [...prevAllData];
+    //                     newData[index] = finalData;
+    //                     return newData;
+    //                 });
+    //                 setMasterData(prevMasterData => {
+    //                     const newData = [...prevMasterData];
+    //                     newData[index] = finalData;
+    //                     return newData;
+    //                 });
+    //             } else {
+    //                 const finalData = {
+    //                     id: allData[index]?.id,
+    //                     object: allData[index]?.object,
+    //                     module: allData[index]?.module,
+    //                     data_object_type,
+    //                     transformation_complexity,
+    //                     load_complexity,
+    //                     source_complexity,
+    //                     scope,
+    //                     object_development: null,
+    //                     iteration_1_data_loading: null,
+    //                     iteration_1_defects: null,
+    //                     iteration_2_data_loading: null,
+    //                     iteration_2_defects: null,
+    //                     iteration_3_data_loading: null,
+    //                     iteration_3_defects: null,
+    //                     production_data_loads: null,
+    //                     total: 0,
+    //                 };
+    //                 setAllData(prevAllData => {
+    //                     const newData = [...prevAllData];
+    //                     newData[index] = finalData;
+    //                     return newData;
+    //                 });
+    //                 setMasterData(prevMasterData => {
+    //                     const newData = [...prevMasterData];
+    //                     newData[index] = finalData;
+    //                     return newData;
+    //                 });
+    //             }
+    //         } catch (error) {
+    //             console.error("Error updating data:", error);
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     } else {
+    //         setAllData(prevAllData => {
+    //             const newData = [...prevAllData];
+    //             newData[index] = { ...newData[index], [field]: value };
+    //             return newData;
+    //         });
+    //         setLoading(false);
+    //     }
+    // };
+    const handleSelectChange = async (id, field, value) => {
+        console.log("handleSelectChange called with id:", id, "field:", field, "value:", value);
    
         setLoading(true);
    
-        const updatedRow = { ...allData[index], [field]: value };
-        console.log("updated row");
-        console.log(updatedRow);
+        const updatedRow = allData.find(item => item.id === id);
    
-        const requiredFieldsFilled = checkRequiredFields(updatedRow);
+        if (!updatedRow) {
+            console.error("Row with id", id, "not found");
+            setLoading(false);
+            return;
+        }
+   
+        const updatedRowWithField = { ...updatedRow, [field]: value };
+        console.log("updatedRowWithField:", updatedRowWithField); // Debugging
+   
+        const requiredFieldsFilled = checkRequiredFields(updatedRowWithField);
+        console.log("requiredFieldsFilled:", requiredFieldsFilled); // Debugging
    
         if (requiredFieldsFilled) {
             try {
-                const { transformation_complexity, load_complexity, source_complexity, data_object_type, scope } = updatedRow;
+                const { transformation_complexity, load_complexity, source_complexity, data_object_type, scope } = updatedRowWithField;
    
-                setAllData(prevAllData => {
-                    const newData = [...prevAllData];
-                    newData[index] = { ...newData[index], scope };
-                    return newData;
-                });
+                // Update scope AFTER API call (temporarily for debugging)
+                // setAllData(prevAllData => prevAllData.map(item => item.id === id ? { ...item, scope } : item));
+                // setMasterData(prevMasterData => prevMasterData.map(item => item.id === id ? { ...item, scope } : item));
    
-                setMasterData(prevMasterData => {
-                    const newData = [...prevMasterData];
-                    newData[index] = { ...newData[index], scope };
-                    return newData;
-                });
+                if (scope && scope.toLowerCase() === "inscope") {
+                    console.log("Calling API for inscope with:", updatedRowWithField);
    
-                if (scope.toLowerCase() === "inscope") {
                     const response = await axios.get(
                         `http://127.0.0.1:8000/estimated_time/${transformation_complexity}/${load_complexity}/${source_complexity}/`,
-                        {params: updatedRow}
+                        { params: updatedRowWithField }
                     );
    
-                    const finalData = {
-                        id: allData[index]?.id,
-                        object: allData[index]?.object,
-                        module: allData[index]?.module,
-                        data_object_type,
-                        transformation_complexity: response?.data[0]?.transformation_complexity,
-                        load_complexity: response?.data[0]?.load_complexity,
-                        source_complexity: response?.data[0]?.source_complexity,
-                        scope,
-                        object_development: response?.data[0]?.object_development,
-                        iteration_1_data_loading: response?.data[0]?.iteration_1_data_loading,
-                        iteration_1_defects: response?.data[0]?.iteration_1_defects,
-                        iteration_2_data_loading: response?.data[0]?.iteration_2_data_loading,
-                        iteration_2_defects: response?.data[0]?.iteration_2_defects,
-                        iteration_3_data_loading: response?.data[0]?.iteration_3_data_loading,
-                        iteration_3_defects: response?.data[0]?.iteration_3_defects,
-                        production_data_loads: response?.data[0]?.production_data_loads,
-                        total: response?.data[0]?.total,
-                    };
-                    console.log(finalData);
+                    console.log("API response:", response.data); // Debugging
    
-                    setAllData(prevAllData => {
-                        const newData = [...prevAllData];
-                        newData[index] = finalData;
-                        return newData;
-                    });
-                    setMasterData(prevMasterData => {
-                        const newData = [...prevMasterData];
-                        newData[index] = finalData;
-                        return newData;
-                    });
-                } else {
                     const finalData = {
-                        id: allData[index]?.id,
-                        object: allData[index]?.object,
-                        module: allData[index]?.module,
-                        data_object_type,
-                        transformation_complexity,
-                        load_complexity,
-                        source_complexity,
+                        ...updatedRow,
+                        ...response.data[0],
                         scope,
+                    };
+   
+                    setAllData(prevAllData => prevAllData.map(item => item.id === id ? finalData : item));
+                    setMasterData(prevMasterData => prevMasterData.map(item => item.id === id ? finalData : item));
+                } else {
+                    console.log("Setting outscope data for id:", id);
+   
+                    const finalData = {
+                        ...updatedRow,
                         object_development: null,
                         iteration_1_data_loading: null,
                         iteration_1_defects: null,
@@ -518,29 +625,21 @@ const Tshirt = () => {
                         iteration_3_defects: null,
                         production_data_loads: null,
                         total: 0,
+                        scope,
                     };
-                    setAllData(prevAllData => {
-                        const newData = [...prevAllData];
-                        newData[index] = finalData;
-                        return newData;
-                    });
-                    setMasterData(prevMasterData => {
-                        const newData = [...prevMasterData];
-                        newData[index] = finalData;
-                        return newData;
-                    });
+   
+                    setAllData(prevAllData => prevAllData.map(item => item.id === id ? finalData : item));
+                    setMasterData(prevMasterData => prevMasterData.map(item => item.id === id ? finalData : item));
                 }
+                setAllData(prevAllData => prevAllData.map(item => item.id === id ? { ...item, scope } : item));
+                setMasterData(prevMasterData => prevMasterData.map(item => item.id === id ? { ...item, scope } : item));
             } catch (error) {
                 console.error("Error updating data:", error);
             } finally {
                 setLoading(false);
             }
         } else {
-            setAllData(prevAllData => {
-                const newData = [...prevAllData];
-                newData[index] = { ...newData[index], [field]: value };
-                return newData;
-            });
+            setAllData(prevAllData => prevAllData.map(item => item.id === id ? updatedRowWithField : item));
             setLoading(false);
         }
     };
@@ -554,12 +653,14 @@ const Tshirt = () => {
         }
         return true;
     };
- 
+    // let uniqId = 10000000000000000;
     const addRow = () => {
         // alert('hi');
         setTempMasterData(masterData)
+       
  
         let updatedData = [{
+            "id": uniqId,
             "object": "",
             "module": "",
             "data_object_type": '',
@@ -582,7 +683,7 @@ const Tshirt = () => {
         setAllData([]);
         setMasterData(updatedData);
         setAllData(updatedData);
-       
+        setUniqId(uniqId+1);
     };
    
     const handleProjectChange = (value) => {
@@ -676,6 +777,7 @@ const Tshirt = () => {
         }
    
         setAllData(filteredData);
+       
     };
    
     const handleSearch = () => {
@@ -909,5 +1011,6 @@ const Tshirt = () => {
 };
  
 export default Tshirt;
+ 
  
  
