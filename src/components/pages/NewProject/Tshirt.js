@@ -76,25 +76,30 @@ const Tshirt = () => {
         } else {
             setOutscopeBool(false);
             const temp = masterData.filter((obj) => obj.scope && obj.scope.toLowerCase() === 'inscope');
+            console.log(temp);
+           
             setAllData(temp);
             setInscopeBool(true);
+            setOutscopeBool(false);
         }
     };
    
     const handelOutscopeData = () => {
         if (outscopeBool) {
-            setAllData(masterData); // Directly set masterData
             setOutscopeBool(false);
             setInscopeBool(false);
+            setAllData(masterData); // Directly set masterData
+           
         } else {
             setInscopeBool(false);
             const temp = masterData.filter((obj) => obj.scope && obj.scope.toLowerCase() === 'outscope');
+            console.log(temp);
             setAllData(temp);
             setOutscopeBool(true);
+            setInscopeBool(false);
         }
     };
     const handleCheckboxChange = (record, checked) => {
-       
         if (checked) {
             setSelectedRows([...selectedRows, record]);
         } else {
@@ -372,11 +377,12 @@ const Tshirt = () => {
             {
                 responseType: 'blob', // C rucial: Get response as a blob
             });
-   
+           
             const blob = new Blob([downloadResponse.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
+ 
             a.download = `${selectedProject}__Effort&Estimate.xlsx`; // Set the filename
             document.body.appendChild(a);
             a.click();
@@ -397,46 +403,7 @@ const Tshirt = () => {
             }
         }
     };
-    // const handleInputChange = (index, field, value) => {
-               
-    //     // console.log(allData);
-    //     // console.log(" dsjfsalidfiwrlfvwlfcw  ");
  
-    //     // console.log(masterData);
- 
-    //     console.log(allData[index]);  
-    //     console.log(field);
-    //     console.log(value);
-       
- 
-    //     setAllData(prevAllData => {
-                     
-    //         const newData = [...prevAllData];
-    //         newData[index] = { ...newData[index], [field]: value };      
-    //         console.log(newData);
-                 
-    //         return newData;
-    //     });
-   
-    //     setMasterData(prevMasterData => {
-    //         const newData = [...prevMasterData];
-    //         newData[index] = { ...newData[index], [field]: value };
-    //         return newData;
-    //     });
- 
-    //     // console.log(allData[index]);
-    //     // setTimeout(() => {
-    //     //     console.log(allData);
-    //     // console.log(" dsjfsalidfiwrlfvwlfcw  ");
-       
-    //     // console.log(masterData);    
-    //     // }, 1000);
-       
-       
-       
-       
-    // };
-   
  
     const handleInputChange = (id, field, value) => {
         setAllData(prevAllData => {
@@ -580,7 +547,8 @@ const Tshirt = () => {
         }
    
         const updatedRowWithField = { ...updatedRow, [field]: value };
-        console.log("updatedRowWithField:", updatedRowWithField); // Debugging
+        console.log("updatedRowWithField:");
+        console.log(updatedRowWithField); // Debugging
    
         const requiredFieldsFilled = checkRequiredFields(updatedRowWithField);
         console.log("requiredFieldsFilled:", requiredFieldsFilled); // Debugging
@@ -588,11 +556,7 @@ const Tshirt = () => {
         if (requiredFieldsFilled) {
             try {
                 const { transformation_complexity, load_complexity, source_complexity, data_object_type, scope } = updatedRowWithField;
-   
-                // Update scope AFTER API call (temporarily for debugging)
-                // setAllData(prevAllData => prevAllData.map(item => item.id === id ? { ...item, scope } : item));
-                // setMasterData(prevMasterData => prevMasterData.map(item => item.id === id ? { ...item, scope } : item));
-   
+ 
                 if (scope && scope.toLowerCase() === "inscope") {
                     console.log("Calling API for inscope with:", updatedRowWithField);
    
@@ -604,11 +568,16 @@ const Tshirt = () => {
                     console.log("API response:", response.data); // Debugging
    
                     const finalData = {
-                        ...updatedRow,
-                        ...response.data[0],
+                        ...updatedRowWithField,
+                        ...(() => {
+                          const { id, ...rest } = response.data[0]; // Destructure to exclude 'id'
+                          return rest;
+                        })(),
                         scope,
-                    };
-   
+                      };
+                    console.log(" final data");
+                    console.log(finalData);
+                       
                     setAllData(prevAllData => prevAllData.map(item => item.id === id ? finalData : item));
                     setMasterData(prevMasterData => prevMasterData.map(item => item.id === id ? finalData : item));
                 } else {
@@ -684,6 +653,7 @@ const Tshirt = () => {
         setMasterData(updatedData);
         setAllData(updatedData);
         setUniqId(uniqId+1);
+        message.success("added row successfully", 1);
     };
    
     const handleProjectChange = (value) => {
@@ -815,11 +785,14 @@ const Tshirt = () => {
         objects.push(s.object); // Access the 'object' property of each element 's'
         }
         console.log(objects);
+       
  
  
         try{
             axios.put(`http://127.0.0.1:8000/project_data_delete/${selectedProject}`,objects).then((res)=>{
               console.log('deleted successfull');
+              message.success("deleted successfully", 1);
+ 
               console.log(res);          
             }).catch(err=>{
               console.log(err);          
@@ -867,7 +840,14 @@ const Tshirt = () => {
         },
         {
           icon: <MdDelete />,
-          onClick: () => setPopUp(true),
+          onClick: () => {
+            if(selectedRows.length === 0){
+                message.warning("No objects selected", 1);
+                setPopUp(false);
+                return;
+            }
+            setPopUp(true);
+        },
           tooltip: 'Delete',
         },
       ];

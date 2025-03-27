@@ -53,10 +53,10 @@ const ReportTshirt = () => {
     const navigate = useNavigate();
     const { projectName } = useParams();
     const { totalEfforts } = useParams();
-    const [txt, setTxt] = useState('');
-    const [realize, setRealize] = useState('');
-    const [live, setLive] = useState('');
-    const [mock, setMock] = useState('');
+    const [txt, setTxt] = useState();
+    const [realize, setRealize] = useState();
+    const [live, setLive] = useState();
+    const [mock, setMock] = useState();
     const [colorrealize, setColorRealize] = useState('');
     const [colorlive, setColorLive] = useState('');
     const [colCnt, setColCnt] = useState(0);
@@ -67,49 +67,22 @@ const ReportTshirt = () => {
     const[popUp, setPopUp] = useState(false);
     const [msgText, setMsgText] = useState();
     const [displayMsgText, setDislayMsgText] = useState(false);
-    const [user_name, setUser_name] = useState(null);
     const tempName = useSelector((state) => state.user.user);
-    const [showProfile, setShowProfile] = useState(false);
-    const profileRef = useRef(null);
  
-    const handleClick = () => {
-        setShowProfile(!showProfile);
-      };
-   
-      const handleClickOutside = (event) => {
-        if (profileRef.current && !profileRef.current.contains(event.target)) {
-          setShowProfile(false);
-        }
-      };
-   
-      useEffect(() => {
-        if (showProfile) {
-          document.addEventListener('mousedown', handleClickOutside);
-        } else {
-          document.removeEventListener('mousedown', handleClickOutside);
-        }
-   
-        return () => {
-          document.removeEventListener('mousedown', handleClickOutside);
-        };
-      }, [showProfile]);
-   
  
     const colorData = [
         { color: 'lightyellow', text: 'Preparation Phase' },
         { color: 'white', text: 'Realization / Object Development Phase' },
         { color: 'green', text: 'Go Live Phase'         },
         { color: 'lightgreen', text: 'Hypercare Phase' }
-        // Add more colors and text here
-      ];
-   
-    useEffect(()=>{
-        setUser_name(tempName);
-        console.log(tempName);
-    }, [])
+    ];
+ 
  
     useEffect(() => {
+        console.log("bhoom");
+       
         let temp = [];
+        console.log("Helo");
         axios.get(`http://127.0.0.1:8000/report_get/${projectName}/`)
             .then(res => {
                 if (res.data && res.data.length > 0) {
@@ -144,42 +117,7 @@ const ReportTshirt = () => {
             .catch(err => {
                 console.error(err);
             });
-    }, [projectName]); // Add projectName to dependency array
- 
-    useEffect(()=>{
-        setDislayMsgText(true);
-        setTimeout(() => {
-            setDislayMsgText(false);
-            setMsgText('');
-        },500);        
-    },[msgText])
- 
-    // const useStyle = createStyles(({ css, token }) => {
-    //     const { antCls } = token;
-    //     return {
-    //         customTable: css`
-    //             ${antCls}-table {
-    //                 ${antCls}-table-container {
-    //                     ${antCls}-table-body,
-    //                     ${antCls}-table-content {
-    //                         scrollbar-width: thin;
-    //                         scrollbar-color: #eaeaea transparent;
-    //                         scrollbar-gutter: stable;
-    //                     }
-    //                 }
-    //             }
-    //         `,
-    //     };
-    // });
- 
- 
-    // const handleSelectChange = (index, field, value) => {
-    //     setDataSource(prevDataSource => {
-    //         const newDataSource = [...prevDataSource];
-    //         newDataSource[index][field] = value;
-    //         return newDataSource;
-    //     });
-    // };
+    }, []); // Add projectName to dependency array
  
  
     const handleSelectChange = (index, field, value) => {
@@ -212,8 +150,7 @@ const ReportTshirt = () => {
         // if (/^\d*$/.test(value))
         if (/^\d+(\.\d{0,1})?$/.test(value))
  
-        { // Allow only integers
-           
+        {            
             setDataSource(prevDataSource => {
                 const updatedDataSource = prevDataSource.map(item => {
                     if (item.key === record.key) {
@@ -399,42 +336,54 @@ const ReportTshirt = () => {
     };
  
     const handelButtonSubmit = () => {
+        console.log(" deadpool ");
+       
         let temp = [];
-        console.log(txt);
-        console.log(realize);
-        console.log(live);
-        console.log(mock);
  
-        if (!txt || !realize || !live || !mock) {
-            // setError('All fields are required.'); // Set error messag
+        let t1 = parseInt(txt, 10), r1 = parseInt(realize, 10), l1 = parseInt(live, 10), m1 = parseInt(mock, 10);
+        console.log(t1);
+        console.log(r1);
+        console.log(l1);
+        console.log(m1);
  
-            message.warning('Please Fill all the Fields!', 1);
-            return; // Stop submission
+            if(t1<=0 || r1<=0 || l1<=0 || m1<=0){
+                if ((!t1 || !r1 || !l1 || !m1) && t1!==0  && m1!==0  && l1!==0  && r1!==0 ) {
+                    message.warning('Field values cannot empty', 1);
+                    return;
+                }
+                message.warning('Field values cannot be 0 ', 1);
+                return;
+            }
+        // if(t1<=0 || r1<=0 || l1<=0 || m1<=0){
+        //     if (!t1 || !r1 || !l1 || !m1) {
+        //         message.warning('Field values cannot empty', 1);
+        //         return;
+        //     }
+        //     message.warning('Field values cannot be 0 ', 1);
+        //     return;
+        // }
+        // if (!t1 || !r1 || !l1 || !m1) {
+        //     message.warning('Field values cannot empty', 1);
+        //     return;
+        // }
+       
+        if(t1 <= r1){
+            message.warning('realization value cannot be greater than project Duration weeks', 1.75);
+            return;
         }
-        else
-        {
-            console.log(mock)
-            if(txt<0)
-            {
-                message.warning('Project TimeLine cannot be negative', 2);
-                return;
-            }
-            else if(realize<0 || realize>txt)
-            {
-                message.warning('Enter a valid Realization week', 2);
-                return;
-            }
-            else if(live<0 || live>txt || live < realize)
-            {  
-                message.warning('Enter a valid Go Live week', 2);
-                return;
-            }
-            else if(mock>3 || mock<0)
-            {
-                message.warning('Value of Mock Iterations Must be Less than 3 and Greater than 0', 2);
-                return;
-            }
+        if(t1 <= l1){
+            message.warning('live value cannot be greater than project Duration weeks', 1.75);
+            return;
         }
+        if(r1 >= l1){
+            message.warning('live value should be less than realization weeks', 1.75);
+            return;
+        }
+        if(m1 <1 || m1>3){
+            message.warning('mock iterations should be 1 or 2 or 3 only ', 1.75);
+            return;
+        }
+ 
  
         let val = {
             "project_name": projectName,
@@ -537,29 +486,18 @@ const ReportTshirt = () => {
  
  
         }
- 
-   
-        // Remove key fields from dataSource and temp
-       
     };
  
  
  
     const handleExcel = async () => {
         try {
-            // const saveResponse = await axios.post(`http://127.0.0.1:8000/temp_save/`,
-            // inscopeData.length>0?inscopeData:outscopeData.length>0 ? outscopeData:masterData);
-            // console.log('Temp saved Successfully');
-            // console.log(saveResponse.data);
-   
+             
             const downloadResponse = await axios.post(`http://127.0.0.1:8000/report_to_excel/`,
                 dataSource,
             {
                 responseType: 'blob', // C rucial: Get response as a blob
             });
-   
-            console.log('Excel downloaded Successfully');
-            console.log(downloadResponse);
    
             const blob = new Blob([downloadResponse.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
@@ -907,4 +845,5 @@ const ReportTshirt = () => {
 };
  
 export default ReportTshirt;
+ 
  

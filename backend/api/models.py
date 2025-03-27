@@ -84,25 +84,4 @@ class project_efforts(models.Model):
         return f"{self.project_name}{self.object}"
     
 
-# class temp_efforts(models.Model):
-#     object = models.CharField(max_length=255,null=False,blank=False)
-#     module = models.CharField(max_length=255,null=True,blank=True)
-#     data_object_type = models.CharField(max_length=255,null=True,blank=True)
-#     transformation_complexity = models.CharField(max_length=255,null=True,blank=True)
-#     load_complexity = models.CharField(max_length=255,null=True,blank=True)
-#     source_complexity = models.CharField(max_length=255,null=True,blank=True)
-#     scope = models.CharField(max_length=255,null=True,blank=True)
-#     object_development = models.FloatField(null=True, blank=True)
-#     iteration_1_data_loading = models.FloatField(null=True, blank=True)
-#     iteration_1_defects = models.FloatField(null=True, blank=True)
-#     iteration_2_data_loading = models.FloatField(null=True, blank=True)
-#     iteration_2_defects = models.FloatField(null=True, blank=True)
-#     iteration_3_data_loading = models.FloatField(null=True, blank=True)
-#     iteration_3_defects = models.FloatField(null=True, blank=True)
-#     production_data_loads = models.FloatField(null=True, blank=True)
-#     total = models.FloatField(null=True, blank=True)
-    
-#     def __str__(self):
-#         return f"{self.object}"
-    
 

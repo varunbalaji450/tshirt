@@ -4,10 +4,28 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { SearchOutlined, HomeOutlined } from '@ant-design/icons';
+import { SearchOutlined } from '@ant-design/icons';
 import { Alert } from "antd";
-// import yash_logo from "../../../"
-
+import { createStyles } from 'antd-style';
+ 
+const useStyle = createStyles(({ css, token }) => {
+    const { antCls } = token;
+    return {
+      customTable: css`
+        ${antCls}-table {
+          ${antCls}-table-container {
+            ${antCls}-table-body,
+            ${antCls}-table-content {
+              scrollbar-width: thin;
+              scrollbar-color: #eaeaea transparent;
+              scrollbar-gutter: stable;
+            }
+          }
+        }
+      `,
+    };
+  });
+ 
 const TshirtHome = () => {
     const navigate = useNavigate();
     const [allData, setAllData] = useState([]);
@@ -17,23 +35,8 @@ const TshirtHome = () => {
     const [errorAlert, setErrorAlert] = useState(null);
     const [searchText, setSearchText] = useState('');
     const [searchData, setSearchData] = useState([]);
-    // const temp = [
-    //     {
-    //         project_name: 'abcd',
-    //         no_of_objects: '1',
-    //         total_effects: '1'
-    //     },
-    //     {
-    //         project_name: 'efgh',
-    //         no_of_objects: '2',
-    //         total_effects: '2'
-    //     },
-    //     {
-    //         project_name: 'ijkl',
-    //         no_of_objects: '3',
-    //         total_effects: '3'
-    //     }
-    // ];
+    const { styles } = useStyle();
+   
     useEffect(()=>{
         try{
             axios.get('http://127.0.0.1:8000/project_get/').then(res=>{
@@ -45,24 +48,15 @@ const TshirtHome = () => {
             })
         }catch(err){
             console.log(err);
-            
+           
         }
     },[]);
     const handleViewReport = (txt, record)=>{
         console.log('button Clicked');
-        console.log(record); 
+        console.log(record);
         navigate(`/tshirtReport/${record.project_name}/${record.total_efforts}`);
     }
-
-    useEffect(() => {
-        if (errorAlert) {
-            const timer = setTimeout(() => {
-                setErrorAlert(null); // Clear the alert after 2 seconds
-            }, 2000);
-
-            return () => clearTimeout(timer); // Clear the timer if the component unmounts or the alert changes
-        }
-    }, [errorAlert]);
+ 
  
     const columns = [
         {
@@ -118,11 +112,8 @@ const TshirtHome = () => {
         setDisplayDiv(false);
     };
     const handleCreate = async()=>{
-        console.log('created successfully');
-        
-        console.log("Project Name:", formValues.textField);
         let projectName = formValues.textField;
-
+ 
          // Frontend Validations
         if (!projectName.trim()) {  // Check for empty or whitespace-only string
             // alert("");
@@ -133,35 +124,35 @@ const TshirtHome = () => {
             message.warning('Underscore cannot be at the beginning or end of the project name', 1.3);
             return;
         }
-
+ 
         const specialChars = /[!@#$%^&*()+\-=[\]{};':",\\|,.<>\/?]+/; // Regex for special characters
         if (specialChars.test(projectName)) {
             message.warning('Project name cannot contain special characters', 1.3);
             return;
         }
-        
+       
         if (/\s/.test(projectName)) { // Check for any whitespace character
             message.warning('Project name cannot contain spaces', 1.3);
             return;
         }
-        
+       
         // Additional validations (e.g., minimum/maximum length)
         if (projectName.length < 3) {
             message.warning('Project name must be at least 3 characters long', 1.3);
             return;
         }
-        
+       
         if (projectName.length > 50) { // Example max length
             message.warning('Project name cannot exceed 50 characters', 1.3);
             return;
         }
-        
+       
         if (/^\d/.test(projectName)) { // Check if the string starts with a digit
             message.warning('Project name cannot start with a number', 1.3);
             return;
         }
-
-
+ 
+ 
         let temp = {
             "project_name" : projectName
         }
@@ -176,23 +167,25 @@ const TshirtHome = () => {
             setDisplayDiv(false);
         }
         catch(err){
-            
+           
             console.log("At Error");
             setDisplayDiv(false);  
-            setErrorAlert("Project already exists"); // Default error message
+            message.error("project already exists", 1);
+            // setErrorAlert("Project already exists");
+            // // Default error message
             console.log(err);
         }
-
-        
-        
-        
+ 
+       
+       
+       
     }
-
+ 
     const handleSearchChange = (e) => {
         setSearchText(e.target.value);
         setSearchData([]);
     };
-
+ 
     const handleSearch = (e)=>{
         console.log('handel search');
         let temp = []
@@ -206,26 +199,26 @@ const TshirtHome = () => {
             setSearchData(temp);
         }
     }
-
-
+ 
+ 
   const handleInputChange = (event) => {
     setFormValues({ ...formValues, textField: event.target.value });
   };
-
-
-
+ 
+ 
+ 
   const handleExcel = async (text,record) => {
     try {
  
-
+ 
             const downloadResponse = await axios.get(`http://127.0.0.1:8000/home_to_excel/${record.project_name}/`,
             {
                 responseType: 'blob', // C rucial: Get response as a blob
             });
-
+ 
             console.log('Excel downloaded Successfully');
             console.log(downloadResponse);
-
+ 
             const blob = new Blob([downloadResponse.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -235,12 +228,12 @@ const TshirtHome = () => {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url); // Release the blob URL (important!)
-
+ 
     } catch (error) {
         console.error("Error:", error);
-
-        
-
+ 
+       
+ 
         if (error.response) {
             // console.error("Response data:", error.response.data);
             // console.error("Response status:", error.response.status);
@@ -257,21 +250,21 @@ const TshirtHome = () => {
         }
     }
 };
-
+ 
     return (
-
+ 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
             <div style={{ marginBottom: '20px', display: 'inline'}}>
                 <div style={{ position: 'absolute', left: '25px',alignContent:'center', marginTop:'6px'  }}>                
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQz6s3WZNZAaKEXsBVRXuMDagabISvp0gqDRw&s"
                     style={{width: '100px', height: '50px', marginRight:'10px',cursor: 'pointer' }}
-                    
+                   
                     onClick={()=>{
                         <Link to="/home"></Link>
                     }}
                     ></img>
                 </div>
-
+ 
                 <h1>Data Migration - Effort and Estimation Report</h1>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
@@ -281,7 +274,7 @@ const TshirtHome = () => {
                 color: 'white',
                 marginRight: '300px',
                 marginLeft: '550px',
-
+ 
                 // Remove marginBottom: '20px'
                 height: '36px', // Match input height
               }}
@@ -302,10 +295,10 @@ const TshirtHome = () => {
                 flexGrow: 1,
                 borderRadius: 0,
                 boxShadow: 'none',
-                outline: 'none', 
+                outline: 'none',
             }}
             />
-          
+         
             <button
               onClick={handleSearch}
               style={{
@@ -320,7 +313,7 @@ const TshirtHome = () => {
                 outline: 'none', // Optional: Remove focus outline
             }}
             >
-                
+               
               <SearchOutlined style={{ fontSize: '18px' }} />
             </button></div>
           </div>
@@ -332,11 +325,22 @@ const TshirtHome = () => {
                     style={{ marginBottom: '10px' }}
                 />
             )}
-            <div style={{ width: '100%' }} className='hometable'> {/* Table takes full width */}
-                {searchData.length > 0 && <Table columns={columns} dataSource={searchData} />}
+             {/* <div style={{ width: '100%' }} className='hometable'>
+                 {searchData.length > 0 && <Table columns={columns} dataSource={searchData} />}
                 {searchData.length === 0 && <Table columns={columns} dataSource={allData} />}
+             </div>  */}
+                <div style={{ width: '100%' }}>
+                {searchData.length > 0 && <Table columns={columns} dataSource={searchData}
+                 className={styles.customTable} scroll={{
+        x: 'max-content',
+        y: 55 * 5,
+      }} />}
+                {searchData.length === 0 && <Table columns={columns} dataSource={allData} className={styles.customTable} scroll={{
+        x: 'max-content',
+        y: 55 * 5,
+      }}/>}
             </div>
-
+             
             {displayDiv && (
                 <div
                     style={{
@@ -372,7 +376,7 @@ const TshirtHome = () => {
                                     onChange={handleInputChange}
                                 />
                             </Form.Item>
-
+ 
                             <Form.Item style={{ marginBottom: 0 }}> {/* Remove default margin */}
                                 <Space>
                                     <Button onClick={handleCancelClick}>Close</Button>
@@ -385,10 +389,11 @@ const TshirtHome = () => {
                     </div>
                 </div>
             )}
-            
+           
         </div>
-
+ 
     );
 };
  
 export default TshirtHome;
+ 
