@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';  
-import { Input, Popover } from 'antd';
+import { Input, Popover, Select, Button } from 'antd';
+ 
+const { Option } = Select;
  
 export const EditableField = ({ value, onUpdate,disabled,source }) => {  
     const [inputValueSource, setInputValueSource] = useState(value);
@@ -18,15 +20,7 @@ export const EditableField = ({ value, onUpdate,disabled,source }) => {
  
     return (  
         <div>        
-        <Input  
-            // style={{  
-            //     width: 150,  
-            //     height: 50,  
-            //     borderRadius: "0px",  
-            //     border: "none"
-            // }}    
-            // className='disabled-button'
-            // disabled={disabled}
+        <Input
             value={inputValueSource}
             onChange={(e) => changeValue(e)}
             onBlur={handleBlur}
@@ -35,4 +29,28 @@ export const EditableField = ({ value, onUpdate,disabled,source }) => {
     );  
 };
  
+ 
+ 
+export const EditableSelect = ({ value, onUpdate, options }) => {
+  const [selectedValue, setSelectedValue] = useState(value);
+ 
+  useEffect(() => {
+    setSelectedValue(value);
+  }, [value]);
+ 
+  const handleChange = (newValue) => {
+    setSelectedValue(newValue);
+    onUpdate(newValue); // Update immediately on change
+  };
+ 
+  return (
+    <Select value={selectedValue} style={{ width: 120 }} onChange={handleChange}>
+      {options.map((option) => (
+        <Option key={option} value={option}>
+          {option}
+        </Option>
+      ))}
+    </Select>
+  );
+};
  

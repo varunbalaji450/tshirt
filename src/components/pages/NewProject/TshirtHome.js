@@ -174,11 +174,7 @@ const TshirtHome = () => {
             // setErrorAlert("Project already exists");
             // // Default error message
             console.log(err);
-        }
- 
-       
-       
-       
+        }        
     }
  
     const handleSearchChange = (e) => {

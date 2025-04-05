@@ -14,6 +14,7 @@ import { MdDelete } from "react-icons/md";
 import { IoIosHome } from "react-icons/io";
 import {EditableField} from './EditableCell';
 import { Tooltip } from 'antd';
+import { EditableSelect } from './EditableCell';
  
  
 const { Option } = Select;
@@ -39,6 +40,7 @@ const Tshirt = () => {
     const [popUp, setPopUp] = useState(false);
     const [hoveredButton, setHoveredButton] = useState(null);
     const [uniqId, setUniqId] = useState(1000000000000);
+    const [allChecked, setAllChecked] = useState(false);
     const tableRef = useRef(null);
     useEffect(() => {
         setSelectedProject(projectName);
@@ -49,8 +51,6 @@ const Tshirt = () => {
                 console.log('response recieved successfully');
                 console.log(res);
                 setProjects(res.data);          
-                // console.log(projects);
-               
             }).catch(err=>{
                 console.log(err);                
             })
@@ -108,23 +108,36 @@ const Tshirt = () => {
         console.log(selectedRows);
     }
  
+    const handleHeaderCheckboxChange = (e) => {
+        setAllChecked(e.target.checked);
+        if (e.target.checked) {
+          setSelectedRows(allData);
+        } else {
+          setSelectedRows([]);
+        }
+      };
    // NO CHANGE
    const columns = [
     {
-        title: '',
+        title: (
+          <Checkbox
+            onChange={handleHeaderCheckboxChange}
+            checked={allChecked}
+          />
+        ),
         dataIndex: 'checkbox',
         key: 'checkbox',
-        width: '30px', // Adjust width as needed
+        width: '30px',
         render: (text, record) => (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <Checkbox
-                    style={{ width: '10px', height: '10px' }}
-                    onChange={(e) => handleCheckboxChange(record, e.target.checked)}
-                    checked={selectedRows.some(row => row.id === record.id)}
-                />
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Checkbox
+              style={{ width: '10px', height: '10px' }}
+              onChange={(e) => handleCheckboxChange(record, e.target.checked)}
+              checked={selectedRows.some((row) => row.id === record.id)}
+            />
+          </div>
         ),
-    },
+      },
     {
         title: 'Objects',
         dataIndex: 'object',
@@ -158,126 +171,86 @@ const Tshirt = () => {
         dataIndex: 'data_object_type',
         key: 'data_object_type',
         align: 'center',
-        width : '170px',
-        render: (text, record, index) => (
-            <Select
-                value={record.data_object_type} // use value instead of defaultValue
-                style={{ width: 150 }}
-                onChange={(value) => handleSelectChange(record?.id, 'data_object_type', value)}
-            >
-                <Option value="Master Data">Master Data</Option>
-                <Option value="Transactional data">Transactional data</Option>
-            </Select>
+        width: '170px',
+        render: (_, record) => (
+          <EditableSelect
+            value={record.data_object_type}
+            onUpdate={(newValue) => handleSelectChange(record?.id, 'data_object_type', newValue)}
+            options={['Master Data', 'Transactional data']}
+          />
         ),
-    },
-    {
+      },
+      {
         title: 'Transformation Complexity',
         dataIndex: 'transformation_complexity',
         key: 'transformation_complexity',
         align: 'center',
-        width : '170px',
-        render: (text, record, index) => (
-            <Select
-                value={record.transformation_complexity} // use value instead of defaultValue
-                style={{ width: 120 }}
-                onChange={(value) => handleSelectChange(record?.id, 'transformation_complexity', value)}
-            >
-                <Option value="Medium">Medium</Option>
-                <Option value="Low">Low</Option>
-                <Option value="Complex">Complex</Option>
-            </Select>
+        width: '170px',
+        render: (_, record) => (
+          <EditableSelect
+            value={record.transformation_complexity}
+            onUpdate={(newValue) => handleSelectChange(record?.id, 'transformation_complexity', newValue)}
+            options={['Medium', 'Low', 'Complex']}
+          />
         ),
-    },
-    {
+      },
+      {
         title: 'Load Complexity',
         dataIndex: 'load_complexity',
         key: 'load_complexity',
         align: 'center',
-        width : '170px',
-        render: (text, record, index) => (
-            <Select
-                value={record.load_complexity} // use value instead of defaultValue
-                style={{ width: 120 }}
-                onChange={(value) => handleSelectChange(record?.id, 'load_complexity', value)}
-            >
-                <Option value="0-10000">0 - 10000</Option>
-                <Option value="10001-50000">10001 - 50000</Option>
-                <Option value="50000-100000">50000 - 100000</Option>
-                <Option value=">100000">&gt;100000</Option>
-            </Select>
+        width: '170px',
+        render: (_, record) => (
+          <EditableSelect
+            value={record.load_complexity}
+            onUpdate={(newValue) => handleSelectChange(record?.id, 'load_complexity', newValue)}
+            options={['0-10000', '10001-50000', '50000-100000', '>100000']}
+          />
         ),
-    },
-    {
+      },
+      {
         title: 'Source Complexity',
         dataIndex: 'source_complexity',
         key: 'source_complexity',
         align: 'center',
-        width : '170px',
-        render: (text, record, index) => (
-            <Select
-                value={record.source_complexity} // use value instead of defaultValue
-                style={{ width: 120 }}
-                onChange={(value) => handleSelectChange(record?.id, 'source_complexity', value)}
-            >
-                <Option value="Low">Low</Option>
-                <Option value="Medium">Medium</Option>
-                <Option value="Complex">Complex</Option>
-            </Select>
+        width: '170px',
+        render: (_, record) => (
+          <EditableSelect
+            value={record.source_complexity}
+            onUpdate={(newValue) => handleSelectChange(record?.id, 'source_complexity', newValue)}
+            options={['Low', 'Medium', 'Complex']}
+          />
         ),
-    },
-    {
+      },
+      {
         title: (
-            <>
-                <Button
-                    style={{
-                        marginRight: '8px',
-                        padding: 0,
-                        textDecoration: 'none',
-                        border: 'none',
-                        color : inscopeBool?'yellow':'#00ffcc',
-                        backgroundColor: 'transparent',
-                    }}
-                    onClick={handelInscopeData}
-                >
-                    Inscope
-                </Button>
-                <Button
-                    style={{
-                        marginRight: '8px',
-                        padding: 0,
-                        textDecoration: 'none',
-                        border: 'none',
-                        color : outscopeBool?'yellow':'#00ffcc',
-                        backgroundColor: 'transparent',
-                    }}
-                    onClick={handelOutscopeData}
-                >
-                    OutScope
-                </Button>
-            </>
+          <>
+            <Button
+              style={{ marginRight: '8px', padding: 0, textDecoration: 'none', border: 'none', color: '#00ffcc', backgroundColor: 'transparent' }}
+              onClick={handelInscopeData}
+            >
+              Inscope
+            </Button>
+            <Button
+              style={{ marginRight: '8px', padding: 0, textDecoration: 'none', border: 'none', color: '#00ffcc', backgroundColor: 'transparent' }}
+              onClick={handelOutscopeData}
+            >
+              OutScope
+            </Button>
+          </>
         ),
         dataIndex: 'scope',
         key: 'scope',
         align: 'center',
-        width : '170px',
-        render: (text, record, index) => (
-            <Select
-                value={record.scope} // use value instead of defaultValue
-                style={{ width: 120 }}
-                onChange={(value) => handleSelectChange(record?.id, 'scope', value)}
-            >
-                <Option value="InScope">InScope</Option>
-                <Option value="OutScope">OutScope</Option>
-            </Select>
+        width: '170px',
+        render: (_, record) => (
+          <EditableSelect
+            value={record.scope}
+            onUpdate={(newValue) => handleSelectChange(record?.id, 'scope', newValue)}
+            options={['InScope', 'OutScope']}
+          />
         ),
-    },
-    {
-        title: 'Object Development',
-        dataIndex: 'object_development',
-        key: 'object_development',
-        align: 'center',
-        width : '170px',
-    },
+      },
     {
         title: 'Iteration 1 - Data Loading',
         dataIndex: 'iteration_1_data_loading',
@@ -424,115 +397,6 @@ const Tshirt = () => {
             });
         });
     };
-    // const handleSelectChange = async (index, field, value) => {
-    //     console.log("hello world");
-   
-    //     setLoading(true);
-   
-    //     const updatedRow = { ...allData[index], [field]: value };
-    //     console.log("updated row");
-    //     console.log(updatedRow);
-   
-    //     const requiredFieldsFilled = checkRequiredFields(updatedRow);
-   
-    //     if (requiredFieldsFilled) {
-    //         try {
-    //             const { transformation_complexity, load_complexity, source_complexity, data_object_type, scope } = updatedRow;
-   
-    //             setAllData(prevAllData => {
-    //                 const newData = [...prevAllData];
-    //                 newData[index] = { ...newData[index], scope };
-    //                 return newData;
-    //             });
-   
-    //             setMasterData(prevMasterData => {
-    //                 const newData = [...prevMasterData];
-    //                 newData[index] = { ...newData[index], scope };
-    //                 return newData;
-    //             });
-   
-    //             if (scope.toLowerCase() === "inscope") {
-    //                 const response = await axios.get(
-    //                     `http://127.0.0.1:8000/estimated_time/${transformation_complexity}/${load_complexity}/${source_complexity}/`,
-    //                     {params: updatedRow}
-    //                 );
-   
-    //                 const finalData = {
-    //                     id: allData[index]?.id,
-    //                     object: allData[index]?.object,
-    //                     module: allData[index]?.module,
-    //                     data_object_type,
-    //                     transformation_complexity: response?.data[0]?.transformation_complexity,
-    //                     load_complexity: response?.data[0]?.load_complexity,
-    //                     source_complexity: response?.data[0]?.source_complexity,
-    //                     scope,
-    //                     object_development: response?.data[0]?.object_development,
-    //                     iteration_1_data_loading: response?.data[0]?.iteration_1_data_loading,
-    //                     iteration_1_defects: response?.data[0]?.iteration_1_defects,
-    //                     iteration_2_data_loading: response?.data[0]?.iteration_2_data_loading,
-    //                     iteration_2_defects: response?.data[0]?.iteration_2_defects,
-    //                     iteration_3_data_loading: response?.data[0]?.iteration_3_data_loading,
-    //                     iteration_3_defects: response?.data[0]?.iteration_3_defects,
-    //                     production_data_loads: response?.data[0]?.production_data_loads,
-    //                     total: response?.data[0]?.total,
-    //                 };
-    //                 console.log(finalData);
-   
-    //                 setAllData(prevAllData => {
-    //                     const newData = [...prevAllData];
-    //                     newData[index] = finalData;
-    //                     return newData;
-    //                 });
-    //                 setMasterData(prevMasterData => {
-    //                     const newData = [...prevMasterData];
-    //                     newData[index] = finalData;
-    //                     return newData;
-    //                 });
-    //             } else {
-    //                 const finalData = {
-    //                     id: allData[index]?.id,
-    //                     object: allData[index]?.object,
-    //                     module: allData[index]?.module,
-    //                     data_object_type,
-    //                     transformation_complexity,
-    //                     load_complexity,
-    //                     source_complexity,
-    //                     scope,
-    //                     object_development: null,
-    //                     iteration_1_data_loading: null,
-    //                     iteration_1_defects: null,
-    //                     iteration_2_data_loading: null,
-    //                     iteration_2_defects: null,
-    //                     iteration_3_data_loading: null,
-    //                     iteration_3_defects: null,
-    //                     production_data_loads: null,
-    //                     total: 0,
-    //                 };
-    //                 setAllData(prevAllData => {
-    //                     const newData = [...prevAllData];
-    //                     newData[index] = finalData;
-    //                     return newData;
-    //                 });
-    //                 setMasterData(prevMasterData => {
-    //                     const newData = [...prevMasterData];
-    //                     newData[index] = finalData;
-    //                     return newData;
-    //                 });
-    //             }
-    //         } catch (error) {
-    //             console.error("Error updating data:", error);
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     } else {
-    //         setAllData(prevAllData => {
-    //             const newData = [...prevAllData];
-    //             newData[index] = { ...newData[index], [field]: value };
-    //             return newData;
-    //         });
-    //         setLoading(false);
-    //     }
-    // };
     const handleSelectChange = async (id, field, value) => {
         console.log("handleSelectChange called with id:", id, "field:", field, "value:", value);
    
@@ -608,10 +472,16 @@ const Tshirt = () => {
                 setLoading(false);
             }
         } else {
+            console.log(updatedRowWithField);
+                       
             setAllData(prevAllData => prevAllData.map(item => item.id === id ? updatedRowWithField : item));
-            setLoading(false);
+            setMasterData(prevMasterData => prevMasterData.map(item => item.id === id ? updatedRowWithField : item));
+            // setAllData(prevAllData => updateDataById(prevAllData, id, updatedRowWithField));
+            setLoading(false);          
+           
         }
     };
+ 
  
     const checkRequiredFields = (row) => {
         const requiredFields = ['transformation_complexity', 'load_complexity', 'source_complexity', 'scope'];
@@ -626,6 +496,9 @@ const Tshirt = () => {
     const addRow = () => {
         // alert('hi');
         setTempMasterData(masterData)
+        setTimeout(() => {
+            console.log(masterData);
+        }, 0);        
        
  
         let updatedData = [{
@@ -811,7 +684,8 @@ const Tshirt = () => {
  
     const handleConfirmationYes = ()=>{
         handleDeleteRows();
-       
+        setAllChecked(false); // Reset the header checkbox
+        setSelectedRows([]);      
     }
     const handleConfirmationNo = ()=>{
         setPopUp(false);
